@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pydeck as pdk
-import ast
+import json
 
 # Set page configuration
 st.set_page_config(page_title="Schiphol geluidoverlast Dashboard", page_icon="🔊", layout="wide")
@@ -86,21 +86,79 @@ elif page == "🔊 pagina 1":
     # df["coordinates"] = df["waypoints"].apply(lambda f: [item["coordinates"] for item in f])
     # df["timestamps"] = df["waypoints"].apply(lambda f: [item["timestamp"] - 1554772579000 for item in f])
 
-    # Group by FlightNumber to create paths
-    grouped = df.groupby("FlightNumber").agg({
-        "coordinates": list,  # Create a list of coordinate pairs per flight
-        "timestamps": list    # Create a list of timestamps per flight
+    # # Group by FlightNumber to create paths
+    # grouped = df.groupby("FlightNumber").agg({
+    #     "coordinates": list,  # Create a list of coordinate pairs per flight
+    #     "timestamps": list    # Create a list of timestamps per flight
+    # }).reset_index()
+
+    # # Rename columns to match PyDeck requirements
+    # grouped.rename(columns={"coordinates": "paths"}, inplace=True)
+
+
+    # Create 'path' column with [Longitude, Latitude, Altitude] format
+    df["path"] = df.apply(lambda row: [row["Longitude"], row["Latitude"], row.get("Altitude_feet", 0) or 0.0], axis=1)
+
+    # Normalize timestamps (convert from milliseconds to seconds)
+    df["time"] = (df["timestamp"] - 1554772579000) // 1000  # Convert to seconds
+
+    # Assign unique IDs based on FlightNumber (or row index if no FlightNumber exists)
+    df["agent_id"] = pd.factorize(df["FlightNumber"])[0]  # Convert unique flight numbers to agent IDs
+
+    # Define random colors for each agent
+    unique_agents = df["agent_id"].unique()
+    colors = {agent_id: np.random.randint(50, 255, size=3).tolist() for agent_id in unique_agents}  # Generate RGB colors
+
+    # Group data by FlightNumber (agent_id)
+    grouped = df.groupby("agent_id").agg({
+        "path": list,  # List of [lon, lat, alt] points
+        "time": list   # List of timestamps
     }).reset_index()
 
-    # Rename columns to match PyDeck requirements
-    grouped.rename(columns={"coordinates": "paths"}, inplace=True)
+    # Add colors
+    grouped["color"] = grouped["agent_id"].map(colors)
 
+    # Convert to final JSON format
+    data = grouped.to_dict(orient="records")
+
+    # Save to a JSON file (if needed)
+    with open("processed_data.json", "w") as f:
+        json.dump(data, f, indent=4)
+
+    # layer = pdk.Layer(
+    #     "TripsLayer",
+    #     grouped,
+    #     get_path="paths",
+    #     get_timestamps="timestamps",
+    #     get_color=[253, 128, 93],
+    #     opacity=0.8,
+    #     width_min_pixels=5,
+    #     rounded=True,
+    #     trail_length=600,
+    #     current_time=500,
+    # )
+
+    # view_state = pdk.ViewState(latitude=52.3080392, 
+    #                            longitude=4.7621975, 
+    #                            zoom=11, 
+    #                            bearing=0, 
+    #                            pitch=45)
+
+    # deck = pdk.Deck(layers=[layer], initial_view_state=view_state)
+
+    # # Render the map in Streamlit
+    # st.pydeck_chart(deck)
+    
+    with open("processed_data.json", "r") as f:
+        data = json.load(f)
+
+    # Define the PyDeck Layer
     layer = pdk.Layer(
         "TripsLayer",
-        grouped,
-        get_path="paths",
-        get_timestamps="timestamps",
-        get_color=[253, 128, 93],
+        data,
+        get_path="path",  # Matches the key in our JSON
+        get_timestamps="time",  # Matches the key in our JSON
+        get_color="color",  # Uses the precomputed color per agent
         opacity=0.8,
         width_min_pixels=5,
         rounded=True,
@@ -108,17 +166,23 @@ elif page == "🔊 pagina 1":
         current_time=500,
     )
 
-    view_state = pdk.ViewState(latitude=52.3080392, 
-                               longitude=4.7621975, 
-                               zoom=11, 
-                               bearing=0, 
-                               pitch=45)
+    # Compute center for the map view
+    latitudes = [coord[1] for item in data for coord in item["path"]]
+    longitudes = [coord[0] for item in data for coord in item["path"]]
 
+    view_state = pdk.ViewState(
+        latitude=sum(latitudes) / len(latitudes),  
+        longitude=sum(longitudes) / len(longitudes),  
+        zoom=11,
+        bearing=0,
+        pitch=45
+    )
+
+    # Create the deck
     deck = pdk.Deck(layers=[layer], initial_view_state=view_state)
 
     # Render the map in Streamlit
     st.pydeck_chart(deck)
-
 
 elif page == "🔊 pagina 2":
     st.title("Geluid overlast")
