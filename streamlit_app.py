@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pydeck as pdk
+import ast
 
 # Set page configuration
 st.set_page_config(page_title="Schiphol geluidoverlast Dashboard", page_icon="🔊", layout="wide")
@@ -85,8 +86,12 @@ elif page == "🔊 pagina 1":
     # df["coordinates"] = df["waypoints"].apply(lambda f: [item["coordinates"] for item in f])
     # df["timestamps"] = df["waypoints"].apply(lambda f: [item["timestamp"] - 1554772579000 for item in f])
 
-    df["paths"] = df.apply(lambda f: [item["path"] for item in f])
-    df["timestamps"] = df.apply(lambda f: [item["timestamp"] - 1554772579000 for item in f])
+    # Convert 'waypoints' column from string to a list of dictionaries
+    # df["waypoints"] = df["waypoints"].apply(ast.literal_eval)
+
+    # # Extract coordinates and timestamps
+    # df["coordinates"] = df["waypoints"].apply(lambda f: [item["coordinates"] for item in f])
+    # df["timestamps"] = df["waypoints"].apply(lambda f: [item["timestamp"] - 1554772579000 for item in f])
 
     layer = pdk.Layer(
         "TripsLayer",
