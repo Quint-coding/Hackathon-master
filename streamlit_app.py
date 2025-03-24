@@ -43,7 +43,9 @@ if page == "🔊 Home":
     Dit dashboard geeft inzicht in de overlast veroorzaakt door vliegtuigen van en naar schiphol.
     Gebruik de navigatie aan de linkerzijde om naar de visualisaties te gaan.
     
-    
+    # op basis van data over het weer en omwonende bepalen hoe de landingsbanen anders ingericht kunnen worden.
+             
+    # optie om klachten aantal  op een kaart te visualiseren
 
     Team 8:
     - Tammo van Leeuwen, 
@@ -51,3 +53,28 @@ if page == "🔊 Home":
     - Burhan Canbaz, 
     - Quint Klaassen
     """)
+elif page == "🔊 Home":
+    st.title("Geluid overlast")
+    st.subheader("Welkom bij ons schiphol dashboard over geluid overlast")
+
+    st.write("""hii""")
+
+elif page == "🔊 pagina 1":
+    st.title("Geluid overlast")
+    st.subheader("Welkom bij ons schiphol dashboard over geluid overlast")
+
+    st.write("""hello""")
+
+
+elif page == "🔊 pagina 2":
+    st.title("Geluid overlast")
+    st.subheader("Welkom bij ons schiphol dashboard over geluid overlast")
+
+    st.write("""hello""")
+
+
+elif page == "🔊 pagina 3":
+    st.title("Geluid overlast")
+    st.subheader("Welkom bij ons schiphol dashboard over geluid overlast")
+
+    st.write("""bonjour""")
