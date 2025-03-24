@@ -86,16 +86,18 @@ elif page == "🔊 pagina 1":
     # df["coordinates"] = df["waypoints"].apply(lambda f: [item["coordinates"] for item in f])
     # df["timestamps"] = df["waypoints"].apply(lambda f: [item["timestamp"] - 1554772579000 for item in f])
 
-    # Convert 'waypoints' column from string to a list of dictionaries
-    # df["waypoints"] = df["waypoints"].apply(ast.literal_eval)
+    # Group by FlightNumber to create paths
+    grouped = df.groupby("FlightNumber").agg({
+        "coordinates": list,  # Create a list of coordinate pairs per flight
+        "timestamps": list    # Create a list of timestamps per flight
+    }).reset_index()
 
-    # # Extract coordinates and timestamps
-    # df["coordinates"] = df["waypoints"].apply(lambda f: [item["coordinates"] for item in f])
-    # df["timestamps"] = df["waypoints"].apply(lambda f: [item["timestamp"] - 1554772579000 for item in f])
+    # Rename columns to match PyDeck requirements
+    grouped.rename(columns={"coordinates": "paths"}, inplace=True)
 
     layer = pdk.Layer(
         "TripsLayer",
-        df,
+        grouped,
         get_path="paths",
         get_timestamps="timestamps",
         get_color=[253, 128, 93],
