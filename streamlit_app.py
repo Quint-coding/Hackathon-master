@@ -87,8 +87,8 @@ elif page == "🔊 pagina 1":
         current_time=500,
     )
 
-    view_state = pdk.ViewState(latitude=37.7749295, 
-                               longitude=-122.4194155, 
+    view_state = pdk.ViewState(latitude=52.3080392, 
+                               longitude=4.7621975, 
                                zoom=11, 
                                bearing=0, 
                                pitch=45)
