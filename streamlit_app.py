@@ -72,7 +72,9 @@ elif page == "🔊 pagina 1":
 
     # df.drop(["waypoints"], axis=1, inplace=True)
 
-    df['path'] = df['Latitude'].astype('string') + ", " + df['Longitude'].astype('string')
+    # df['path'] = df['Latitude'].astype('string') + ", " + df['Longitude'].astype('string')
+
+    df['path'] = df.apply(lambda row: [[row['Longitude'], row['Latitude']]], axis=1)
 
     layer = pdk.Layer(
         "TripsLayer",
