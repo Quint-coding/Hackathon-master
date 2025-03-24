@@ -82,11 +82,17 @@ elif page == "🔊 pagina 1":
     # # Add timestamps for animation
     # df_grouped['timestamp'] = [df['timestamp'].tolist()]
 
+    # df["coordinates"] = df["waypoints"].apply(lambda f: [item["coordinates"] for item in f])
+    # df["timestamps"] = df["waypoints"].apply(lambda f: [item["timestamp"] - 1554772579000 for item in f])
+
+    df["paths"] = df.apply(lambda f: [item["path"] for item in f])
+    df["timestamps"] = df.apply(lambda f: [item["timestamp"] - 1554772579000 for item in f])
+
     layer = pdk.Layer(
         "TripsLayer",
         df,
-        get_path="path",
-        get_timestamps="timestamp",
+        get_path="paths",
+        get_timestamps="timestamps",
         get_color=[253, 128, 93],
         opacity=0.8,
         width_min_pixels=5,
