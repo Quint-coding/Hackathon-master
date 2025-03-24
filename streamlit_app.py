@@ -43,9 +43,13 @@ if page == "🔊 Home":
     Dit dashboard geeft inzicht in de overlast veroorzaakt door vliegtuigen van en naar schiphol.
     Gebruik de navigatie aan de linkerzijde om naar de visualisaties te gaan.
     
-    # op basis van data over het weer en omwonende bepalen hoe de landingsbanen anders ingericht kunnen worden.
+    
+    De kaagbaan en polderbaan hebben respectievelijk voorkeur voor aankomende en vertrekkende vluchten, dit omdat deze banen voor minder overlast zorgen. 
+             Het wil nog wel eens voorkomen dat er voor andere banen gekozen wordt wegens de veiligheid, het zicht, de wind- en weersomstandigheden, de milieuregels en de beschikbaarheid van de banen.
+
+    op basis van data over het weer en omwonende bepalen hoe de landingsbanen anders ingericht kunnen worden.
              
-    # optie om klachten aantal  op een kaart te visualiseren
+    optie om klachten aantal  op een kaart te visualiseren
 
     Team 8:
     - Tammo van Leeuwen, 
