@@ -77,10 +77,10 @@ elif page == "🔊 pagina 1":
     # df['path'] = df.apply(lambda row: [[row['Longitude'], row['Latitude']]], axis=1)
 
     # Group data into paths (TripsLayer expects an array of coordinate lists)
-    df_grouped = df.groupby(lambda x: 0)[['Longitude', 'Latitude']].apply(lambda x: x.values.tolist()).reset_index(name="path")
+    # df_grouped = df.groupby(lambda x: 0)[['Longitude', 'Latitude']].apply(lambda x: x.values.tolist()).reset_index(name="path")
 
-    # Add timestamps for animation
-    df_grouped['timestamp'] = [df['timestamp'].tolist()]
+    # # Add timestamps for animation
+    # df_grouped['timestamp'] = [df['timestamp'].tolist()]
 
     layer = pdk.Layer(
         "TripsLayer",
