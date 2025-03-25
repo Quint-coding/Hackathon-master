@@ -96,34 +96,62 @@ elif page == "🔊 pagina 1":
     # grouped.rename(columns={"coordinates": "paths"}, inplace=True)
 
 
-    # Create 'path' column with [Longitude, Latitude, Altitude] format
-    df["path"] = df.apply(lambda row: [row["Longitude"], row["Latitude"], row.get("Altitude_feet", 0) or 0.0], axis=1)
+    # # Create 'path' column with [Longitude, Latitude, Altitude] format
+    # df["path"] = df.apply(lambda row: [row["Longitude"], row["Latitude"], row.get("Altitude_feet", 0) or 0.0], axis=1)
 
-    # Normalize timestamps (convert from milliseconds to seconds)
-    df["time"] = (df["timestamp"] - 1554772579000) // 1000  # Convert to seconds
+    # # Normalize timestamps (convert from milliseconds to seconds)
+    # df["time"] = (df["timestamp"] - 1554772579000) // 1000  # Convert to seconds
 
-    # Assign unique IDs based on FlightNumber (or row index if no FlightNumber exists)
-    df["agent_id"] = pd.factorize(df["FlightNumber"])[0]  # Convert unique flight numbers to agent IDs
+    # # Assign unique IDs based on FlightNumber (or row index if no FlightNumber exists)
+    # df["agent_id"] = pd.factorize(df["FlightNumber"])[0]  # Convert unique flight numbers to agent IDs
 
-    # Define random colors for each agent
-    unique_agents = df["agent_id"].unique()
-    colors = {agent_id: np.random.randint(50, 255, size=3).tolist() for agent_id in unique_agents}  # Generate RGB colors
+    # # Define random colors for each agent
+    # unique_agents = df["agent_id"].unique()
+    # colors = {agent_id: np.random.randint(50, 255, size=3).tolist() for agent_id in unique_agents}  # Generate RGB colors
 
-    # Group data by FlightNumber (agent_id)
-    grouped = df.groupby("agent_id").agg({
-        "path": list,  # List of [lon, lat, alt] points
-        "time": list   # List of timestamps
+    # # Group data by FlightNumber (agent_id)
+    # grouped = df.groupby("agent_id").agg({
+    #     "path": list,  # List of [lon, lat, alt] points
+    #     "time": list   # List of timestamps
+    # }).reset_index()
+
+    # # Add colors
+    # grouped["color"] = grouped["agent_id"].map(colors)
+
+    # # Convert to final JSON format
+    # data = grouped.to_dict(orient="records")
+
+    # # Save to a JSON file (if needed)
+    # with open("processed_data.json", "w") as f:
+    #     json.dump(data, f, indent=4)
+
+    # Group by FlightNumber to create flight paths
+    df_grouped = df.groupby("FlightNumber").agg({
+        "Longitude": list,  # List of longitudes
+        "Latitude": list,  # List of latitudes
+        "Altitude_feet": lambda x: list(x.fillna(0))  # Ensure altitude exists
     }).reset_index()
 
-    # Add colors
-    grouped["color"] = grouped["agent_id"].map(colors)
+    # Convert to the required path format [[lon, lat, alt], ...]
+    df_grouped["path"] = df_grouped.apply(lambda row: 
+        [[lon, lat, alt] for lon, lat, alt in zip(row["Longitude"], row["Latitude"], row["Altitude_feet"])], axis=1)
+
+    # Normalize timestamps
+    df["time"] = (df["timestamp"] - 1554772579000) // 1000  # Convert to seconds
+
+    # Assign unique agent IDs
+    df_grouped["agent_id"] = pd.factorize(df_grouped["FlightNumber"])[0]
+
+    # Generate colors per flight
+    unique_agents = df_grouped["agent_id"].unique()
+    colors = {agent_id: np.random.randint(50, 255, size=3).tolist() for agent_id in unique_agents}
+    df_grouped["color"] = df_grouped["agent_id"].map(colors)
+
+    # Convert timestamps per flight
+    df_grouped["time"] = df.groupby("FlightNumber")["time"].apply(list).reset_index(drop=True)
 
     # Convert to final JSON format
-    data = grouped.to_dict(orient="records")
-
-    # Save to a JSON file (if needed)
-    with open("processed_data.json", "w") as f:
-        json.dump(data, f, indent=4)
+    data = df_grouped.to_dict(orient="records")
 
     layer = pdk.Layer(
         "TripsLayer",
