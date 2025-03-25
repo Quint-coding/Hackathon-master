@@ -68,29 +68,33 @@ elif page == "🔊 pagina 1":
 
     st.write("""hello""")
 
-    df = pd.read_csv('timestamp vlucht data.csv')
+    @st.cache_data
+    def data_cache():
+        df = pd.read_csv('timestamp vlucht data.csv')
+        
+        # Converteer kolommen naar numerieke waarden
+        df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
+        df['Longitude'] = pd.to_numeric(df['Longitude'], errors='coerce')
+        
+        # Filter rijen met ontbrekende waarden
+        df = df.dropna(subset=['Latitude', 'Longitude', 'FlightType', 'FlightNumber'])
+        
+        # Simuleer tijdelijke geluidsdata (Noise_Level)
+        np.random.seed(42)
+        df['Noise_Level'] = np.random.randint(50, 100, size=len(df))
+        df['Noise_Level'] = df['Noise_Level'] * 5
+        
+        # Filter de dataset op basis van vluchtsoort
+        df = df[df['FlightType'] == selected_type]
     
-    # Converteer kolommen naar numerieke waarden
-    df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
-    df['Longitude'] = pd.to_numeric(df['Longitude'], errors='coerce')
-    
-    # Filter rijen met ontbrekende waarden
-    df = df.dropna(subset=['Latitude', 'Longitude', 'FlightType', 'FlightNumber'])
-    
-    # Simuleer tijdelijke geluidsdata (Noise_Level)
-    np.random.seed(42)
-    df['Noise_Level'] = np.random.randint(50, 100, size=len(df))
-    df['Noise_Level'] = df['Noise_Level'] * 5
-    
+    df = data_cache()
+
     # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
     vlucht_types = df['FlightType'].unique().tolist()
     vlucht_types.sort()
-    
+
     # Streamlit interface - Keuze tussen Aankomst of Vertrek
     selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
-    
-    # Filter de dataset op basis van vluchtsoort
-    df = df[df['FlightType'] == selected_type]
     
     # Unieke vluchten ophalen en multiselect maken
     vluchten = df['FlightNumber'].unique().tolist()
