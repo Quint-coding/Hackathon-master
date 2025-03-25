@@ -69,7 +69,7 @@ elif page == "🔊 pagina 1":
     st.write("""hello""")
 
     @st.cache_data
-    def data_cache():
+    def load_and_process_data():
         df = pd.read_csv('timestamp vlucht data.csv')
         
         # Converteer kolommen naar numerieke waarden
@@ -84,17 +84,20 @@ elif page == "🔊 pagina 1":
         df['Noise_Level'] = np.random.randint(50, 100, size=len(df))
         df['Noise_Level'] = df['Noise_Level'] * 5
         
-        # Filter de dataset op basis van vluchtsoort
-        df = df[df['FlightType'] == selected_type]
-    
-    df = data_cache()
+        # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
+        vlucht_types = df['FlightType'].unique().tolist()
+        vlucht_types.sort()
+        
+        return df, vlucht_types
 
-    # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
-    vlucht_types = df['FlightType'].unique().tolist()
-    vlucht_types.sort()
+    # Laad de data en vluchtsoorten met behulp van de gecachte functie
+    df, vlucht_types = load_and_process_data()
 
     # Streamlit interface - Keuze tussen Aankomst of Vertrek
     selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
+
+    # Filter de dataset op basis van vluchtsoort
+    df = df[df['FlightType'] == selected_type]
     
     # Unieke vluchten ophalen en multiselect maken
     vluchten = df['FlightNumber'].unique().tolist()
