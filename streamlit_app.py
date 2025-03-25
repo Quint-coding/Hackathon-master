@@ -67,7 +67,7 @@ elif page == "🔊 pagina 1":
 
     st.write("""hello""")
 
-        df = pd.read_csv('timestamp vlucht data.csv')
+    df = pd.read_csv('timestamp vlucht data.csv')
     
     # Converteer kolommen naar numerieke waarden
     df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
