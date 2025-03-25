@@ -107,7 +107,9 @@ elif page == "🔊 Geoplot geluidoverlast":
 
     # # Streamlit interface - Keuze tussen Aankomst of Vertrek
     # selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
-    selected_type = st.multiselect("Selecteer type(n) vlucht:", vlucht_types, default=vlucht_types)  # Standaard: beide geselecteerd
+    selected_type = st.multiselect("Selecteer type(n) vlucht:", vlucht_types
+                                #    , default=vlucht_types
+                                   )  # Standaard: beide geselecteerd
 
     # Filter de dataset op basis van vluchtsoort
     df = df[df['FlightType'] == selected_type]
