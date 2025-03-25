@@ -127,10 +127,11 @@ elif page == "🔊 Geoplot geluidoverlast":
     #         route_layers.append(
     #             pdk.Layer(
     #                 "PathLayer",
-    #                 data=[{"path": [coord[:2] for coord in route_coordinates], # gebruik alleen Longitude en Latitude voor de route
-    #                     "FlightNumber": flight_number,
-    #                     "Speed_kts": coord[2], # voeg speed_kts toe
-    #                     "Altitude_feet": coord[3]} for coord in route_coordinates], # voeg Altitude_feet toe
+    #                 data=df
+    #                 # [{"path": [coord[:2] for coord in route_coordinates], # gebruik alleen Longitude en Latitude voor de route
+    #                 #     "FlightNumber": flight_number,
+    #                 #     "Speed_kts": coord[2], # voeg speed_kts toe
+    #                 #     "Altitude_feet": coord[3]} for coord in route_coordinates], # voeg Altitude_feet toe
     #                 get_path="path",
     #                 get_width=4,
     #                 get_color=[100, 100, 255],
@@ -138,6 +139,22 @@ elif page == "🔊 Geoplot geluidoverlast":
     #                 pickable=True,
     #             )
     #         )
+    route_layers = []
+    for flight_number, flight_df in df.groupby('FlightNumber'):
+        route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
+    
+        if len(route_coordinates) > 1:
+            route_layers.append(
+                pdk.Layer(
+                    "PathLayer",
+                    data=[{"path": route_coordinates, "FlightNumber": flight_number}],  # FlightNumber toegevoegd
+                    get_path="path",
+                    get_width=4,
+                    get_color=[100, 100, 255],
+                    width_min_pixels=2,
+                    pickable=True, # pickable toegevoegd.
+                )
+            )
     
     # Geluidsimpact toevoegen als cirkels rond elke locatie
     radius_layer = pdk.Layer(
@@ -158,20 +175,21 @@ elif page == "🔊 Geoplot geluidoverlast":
     )
     
     # # Noise aan toevoegen
-    # # Maak een pydeck Deck (kaart)
-    # deck = pdk.Deck(
-    #     layers=route_layers + [radius_layer],
-    #     initial_view_state=initial_view_state,
-    #     map_style="mapbox://styles/mapbox/streets-v11",
-    #     tooltip={
-    #         "html": "<b>Vlucht ID:</b> {FlightNumber}<br><b>Snelheid:</b> {Speed_kts} kts<br><b>Hoogte:</b> {Altitude_feet} ft",
-    #         "style": {
-    #             "backgroundColor": "white",
-    #             "color": "black",
-    #             "z-index": "10000"
-    #         }
-    #     }
-    # )
+    # Maak een pydeck Deck (kaart)
+    deck = pdk.Deck(
+    layers=route_layers + [radius_layer],
+    initial_view_state=initial_view_state,
+    map_style="mapbox://styles/mapbox/streets-v11",
+    tooltip={
+        "html": "<b>Vlucht ID:</b> {FlightNumber}",
+        "style": {
+            "backgroundColor": "white",
+            "color": "black",
+            "z-index": "10000"
+        }
+    }
+)
+ 
     
     # Toon de kaart in Streamlit
     st.pydeck_chart(deck)
