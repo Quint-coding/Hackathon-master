@@ -67,8 +67,8 @@ elif page == "🔊 pagina 1":
 
     st.write("""hello""")
 
-    df = pd.read_csv('timestamp vlucht data.csv')
-
+        df = pd.read_csv('timestamp vlucht data.csv')
+    
     # Converteer kolommen naar numerieke waarden
     df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
     df['Longitude'] = pd.to_numeric(df['Longitude'], errors='coerce')
@@ -86,34 +86,30 @@ elif page == "🔊 pagina 1":
     # Filter de dataset op basis van vluchtsoort
     df = df[df['FlightType'] == selected_type]
     
-    # Unieke vluchten ophalen
+    # Unieke vluchten ophalen en multiselect maken
     vluchten = df['FlightNumber'].unique().tolist()
     selected_flights = st.multiselect("Selecteer vlucht(en):", ["Alle vluchten"] + vluchten, default=["Alle vluchten"])
     
-    # Filter de dataset op basis van de selectie
-    if selected_flight != "Alle vluchten":
-        df = df[df['FlightNumber'] == selected_flight]
+    # Check of "Alle vluchten" is geselecteerd
+    if "Alle vluchten" not in selected_flights:
+        df = df[df['FlightNumber'].isin(selected_flights)]
     
     # Maak een lijst van vluchten als afzonderlijke routes
     route_layers = []
+    colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 0], [255, 165, 0]]  # Rood, Groen, Blauw, Geel, Oranje
+    color_map = {flight: colors[i % len(colors)] for i, flight in enumerate(df['FlightNumber'].unique())}
+    
     for flight_number, flight_df in df.groupby('FlightNumber'):
         route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
     
-        # Voeg alleen routes toe met minstens twee punten
         if len(route_coordinates) > 1:
-            # Kleur bepalen: Blauw voor Aankomst, Groen voor Vertrek, Rood als een specifieke vlucht is geselecteerd
-            if selected_flight != "Alle vluchten":
-                color = [255, 0, 0]  # Rood voor de geselecteerde vlucht
-            else:
-                color = [0, 0, 255] if selected_type == "Arrivals" else [0, 255, 0]  # Blauw = Aankomst, Groen = Vertrek
-    
             route_layers.append(
                 pdk.Layer(
                     "PathLayer",
                     data=[{"path": route_coordinates}],
                     get_path="path",
                     get_width=4,
-                    get_color=color,
+                    get_color=color_map[flight_number],
                     width_min_pixels=2,
                 )
             )
