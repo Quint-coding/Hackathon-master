@@ -225,15 +225,15 @@ elif page == "🔊 pagina 2":
     st.sidebar.header("Flight Path Selector")
     selected_flight = st.sidebar.selectbox("Select a Flight", ["All Flights"] + list(df["FlightNumber"].unique()))
     selected_time = st.sidebar.slider("Select Time", 
-                                    min_value=df["Time"].min(), 
-                                    max_value=df["Time"].max(),
-                                    value=df["Time"].min(), 
+                                    min_value=df["datetime"].min(), 
+                                    max_value=df["datetime"].max(),
+                                    value=df["datetime"].min(), 
                                     format="%H:%M:%S")
 
     # Filter Data
     if selected_flight != "All Flights":
         df = df[df["FlightNumber"] == selected_flight]
-    df = df[df["Time"] <= selected_time]
+    df = df[df["datetime"] <= selected_time]
 
     # Map Visualization
     st.pydeck_chart(pdk.Deck(
