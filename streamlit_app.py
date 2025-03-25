@@ -164,6 +164,12 @@ elif page == "🔊 Geoplot geluidoverlast":
                 "backgroundColor": "white",
                 "color": "black",
                 "z-index": "10000"
+            },
+            "html": "<b>Altitude:</b> {Altitude_feet}",
+            "style": {
+                "backgroundColor": "white",
+                "color": "black",
+                "z-index": "10000"
             }
         }
     )
