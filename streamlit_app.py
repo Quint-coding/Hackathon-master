@@ -4,8 +4,6 @@ import numpy as np
 import pydeck as pdk
 from datetime import datetime
 import json
-import matplotlib.pyplot as plt 
-# import plotly.express as px
 
 # Set page configuration
 st.set_page_config(page_title="Schiphol geluidoverlast Dashboard", page_icon="🔊", layout="wide")
@@ -180,16 +178,6 @@ elif page == "🔊 pagina 2":
     st.subheader("Welkom bij ons schiphol dashboard over geluid overlast")
 
     st.write("""hello""")
-
-    df = pd.read_csv('timestamp vlucht data.csv')
-
-    plt.figure(figsize=(10, 6))  # Adjust figure size as needed
-    plt.plot(df['Altitude_feet'], df['ClimbRate'])
-    plt.title('Klim snelheid op hoogte')
-    plt.xlabel('Hoogte (ft)')
-    plt.ylabel('Climb rate')
-    plt.grid(True)  # Add grid lines for better readability
-    st.pyplot(plt)
 
 elif page == "🔊 pagina 3":
     st.title("Geluid overlast")
