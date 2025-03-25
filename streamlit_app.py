@@ -152,7 +152,7 @@ elif page == "🔊 pagina 1":
         latitude=52.308056,
         longitude=4.764167,
         zoom=8,
-        pitch=30,
+        pitch=0,
     )
     
     # Maak een pydeck Deck (kaart)
