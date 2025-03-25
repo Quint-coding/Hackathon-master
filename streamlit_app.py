@@ -153,6 +153,8 @@ elif page == "🔊 pagina 1":
     # Convert to final JSON format
     data = df_grouped.to_dict(orient="records")
 
+    st.write(data)
+
     layer = pdk.Layer(
         "TripsLayer",
         data,
