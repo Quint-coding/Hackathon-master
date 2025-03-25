@@ -87,37 +87,38 @@ elif page == "🔊 pagina 1":
         # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
         vlucht_types = df['FlightType'].unique().tolist()
         vlucht_types.sort()
+
+        # Kleur bepalen op basis van Noise_Level
+        def get_noise_color(noise_level):
+            """Geeft een kleur op basis van de geluidssterkte"""
+            if noise_level < 65:
+                return [0, 255, 0, 100]  # Groen (rustig)
+            elif noise_level < 80:
+                return [255, 165, 0, 150]  # Oranje (middelmatig geluid)
+            else:
+                return [255, 0, 0, 200]  # Rood (luid)
         
-        return df, vlucht_types
+        df['color'] = df['Noise_Level'].apply(get_noise_color)
+
+        # Unieke vluchten ophalen en multiselect maken
+        vluchten = df['FlightNumber'].unique().tolist()
+        
+        return df, vlucht_types, vluchten
 
     # Laad de data en vluchtsoorten met behulp van de gecachte functie
-    df, vlucht_types = load_and_process_data()
+    df, vlucht_types, vluchten = load_and_process_data()
 
     # Streamlit interface - Keuze tussen Aankomst of Vertrek
     selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
 
     # Filter de dataset op basis van vluchtsoort
     df = df[df['FlightType'] == selected_type]
-    
-    # Unieke vluchten ophalen en multiselect maken
-    vluchten = df['FlightNumber'].unique().tolist()
+
     selected_flights = st.multiselect("Selecteer vlucht(en):", ["Alle vluchten"] + vluchten, default=["Alle vluchten"])
     
     # Check of "Alle vluchten" is geselecteerd
     if "Alle vluchten" not in selected_flights:
         df = df[df['FlightNumber'].isin(selected_flights)]
-    
-    # Kleur bepalen op basis van Noise_Level
-    def get_noise_color(noise_level):
-        """Geeft een kleur op basis van de geluidssterkte"""
-        if noise_level < 65:
-            return [0, 255, 0, 100]  # Groen (rustig)
-        elif noise_level < 80:
-            return [255, 165, 0, 150]  # Oranje (middelmatig geluid)
-        else:
-            return [255, 0, 0, 200]  # Rood (luid)
-    
-    df['color'] = df['Noise_Level'].apply(get_noise_color)
     
     # Route-lagen per vlucht
     route_layers = []
@@ -150,8 +151,8 @@ elif page == "🔊 pagina 1":
     
     # Definieer de initiële weergave van de kaart
     initial_view_state = pdk.ViewState(
-        latitude=df['Latitude'].mean(),
-        longitude=df['Longitude'].mean(),
+        latitude=52.308056,
+        longitude=4.764167,
         zoom=8,
         pitch=0,
     )
