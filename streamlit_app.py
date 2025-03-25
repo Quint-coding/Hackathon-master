@@ -91,7 +91,7 @@ elif page == "🔊 pagina 1":
     vluchten.insert(0, "Alle vluchten")  # Voeg optie toe om alles te tonen
     
     # Streamlit interface - Keuze van vlucht
-    selected_flight = st.multiselect("Selecteer een vlucht:", vluchten)
+    selected_flight = st.selectbox("Selecteer een vlucht:", vluchten)
     
     # Filter de dataset op basis van de selectie
     if selected_flight != "Alle vluchten":
