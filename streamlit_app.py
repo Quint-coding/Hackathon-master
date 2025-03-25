@@ -68,7 +68,7 @@ elif page == "🔊 pagina 1":
     st.write("""hello""")
 
     df = pd.read_csv('timestamp vlucht data.csv')
-    
+
     # Converteer kolommen naar numerieke waarden
     df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
     df['Longitude'] = pd.to_numeric(df['Longitude'], errors='coerce')
@@ -91,7 +91,7 @@ elif page == "🔊 pagina 1":
     vluchten.insert(0, "Alle vluchten")  # Voeg optie toe om alles te tonen
     
     # Streamlit interface - Keuze van vlucht
-    selected_flight = st.selectbox("Selecteer een vlucht:", vluchten)
+    selected_flight = st.multiselect("Selecteer een vlucht:", vluchten)
     
     # Filter de dataset op basis van de selectie
     if selected_flight != "Alle vluchten":
