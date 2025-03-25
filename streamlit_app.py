@@ -179,8 +179,8 @@ elif page == "🔊 pagina 1":
     # Render the map in Streamlit
     st.pydeck_chart(deck)
 
-    with open("processed_data.json", "r") as f:
-        data = json.load(f)
+    # with open("processed_data.json", "r") as f:
+    #     data = json.load(f)
 
     # # Define the PyDeck Layer
     # layer = pdk.Layer(
@@ -219,6 +219,69 @@ elif page == "🔊 pagina 2":
     st.subheader("Welkom bij ons schiphol dashboard over geluid overlast")
 
     st.write("""hello""")
+
+        # Load processed flight data
+    with open("processed_data.json", "r") as f:
+        data = json.load(f)
+
+    # Extract unique flight names for dropdown
+    flight_options = {item["agent_id"]: f"Flight {item['agent_id']}" for item in data}
+
+    # Streamlit UI
+    st.title("Flight Path Visualization ✈️")
+    st.sidebar.header("Filters")
+
+    # Dropdown to select a flight
+    selected_flight_id = st.sidebar.selectbox("Select a Flight", options=flight_options.keys(), format_func=lambda x: flight_options[x])
+
+    # Extract min/max time from data
+    all_times = [t for flight in data for t in flight["time"]]
+    min_time, max_time = (min(all_times), max(all_times)) if all_times else (0, 1000)
+
+    # Slider to filter by time
+    selected_time = st.sidebar.slider("Select Time", min_time, max_time, (min_time, max_time))
+
+    # Filter data based on selections
+    filtered_data = [flight for flight in data if flight["agent_id"] == selected_flight_id]
+    if filtered_data:
+        filtered_data[0]["path"] = [
+            coord for i, coord in enumerate(filtered_data[0]["path"]) 
+            if selected_time[0] <= filtered_data[0]["time"][i] <= selected_time[1]
+        ]
+        filtered_data[0]["time"] = [
+            t for t in filtered_data[0]["time"] 
+            if selected_time[0] <= t <= selected_time[1]
+        ]
+
+    # Define PyDeck layer
+    layer = pdk.Layer(
+        "TripsLayer",
+        filtered_data,
+        get_path="path",
+        get_timestamps="time",
+        get_color="color",
+        opacity=0.8,
+        width_min_pixels=5,
+        rounded=True,
+        trail_length=600,
+        current_time=selected_time[0],  # Start at the selected time
+    )
+
+    # Auto-center map based on flight data
+    latitudes = [coord[1] for flight in filtered_data for coord in flight["path"]]
+    longitudes = [coord[0] for flight in filtered_data for coord in flight["path"]]
+
+    view_state = pdk.ViewState(
+        latitude=np.mean(latitudes) if latitudes else 52.308,  
+        longitude=np.mean(longitudes) if longitudes else 4.762,  
+        zoom=9,
+        bearing=0,
+        pitch=45
+    )
+
+    # Create and render map
+    deck = pdk.Deck(layers=[layer], initial_view_state=view_state)
+    st.pydeck_chart(deck)
 
 
 elif page == "🔊 pagina 3":
