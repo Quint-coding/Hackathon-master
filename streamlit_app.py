@@ -120,18 +120,21 @@ elif page == "🔊 Geoplot geluidoverlast":
     # Route-lagen per vlucht
     route_layers = []
     for flight_number, flight_df in df.groupby('FlightNumber'):
-        route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
-    
+        route_coordinates = flight_df[['Longitude', 'Latitude', 'Speed_kts', 'Altitude_feet']].values.tolist() # voeg speed_kts en Altitude_feet toe
+
         if len(route_coordinates) > 1:
             route_layers.append(
                 pdk.Layer(
                     "PathLayer",
-                    data=[{"path": route_coordinates, "FlightNumber": flight_number}],  # FlightNumber toegevoegd
+                    data=[{"path": [coord[:2] for coord in route_coordinates], # gebruik alleen Longitude en Latitude voor de route
+                        "FlightNumber": flight_number,
+                        "Speed_kts": coord[2], # voeg speed_kts toe
+                        "Altitude_feet": coord[3]} for coord in route_coordinates], # voeg Altitude_feet toe
                     get_path="path",
                     get_width=4,
-                    get_color=[147, 112, 219],
+                    get_color=[100, 100, 255],
                     width_min_pixels=2,
-                    pickable=True, # pickable toegevoegd.
+                    pickable=True,
                 )
             )
     
@@ -159,7 +162,7 @@ elif page == "🔊 Geoplot geluidoverlast":
         initial_view_state=initial_view_state,
         map_style="mapbox://styles/mapbox/streets-v11",
         tooltip={
-            "html": "<b>Koers:</b> {Course}<br/><b>Snelheid:</b> {Speed_mph}",
+            "html": "<b>Vlucht ID:</b> {FlightNumber}<br><b>Snelheid:</b> {Speed_kts} kts<br><b>Hoogte:</b> {Altitude_feet} ft",
             "style": {
                 "backgroundColor": "white",
                 "color": "black",
