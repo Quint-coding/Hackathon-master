@@ -88,10 +88,7 @@ elif page == "🔊 pagina 1":
     
     # Unieke vluchten ophalen
     vluchten = df['FlightNumber'].unique().tolist()
-    vluchten.insert(0, "Alle vluchten")  # Voeg optie toe om alles te tonen
-    
-    # Streamlit interface - Keuze van vlucht
-    selected_flight = st.selectbox("Selecteer een vlucht:", vluchten)
+    selected_flights = st.multiselect("Selecteer vlucht(en):", ["Alle vluchten"] + vluchten, default=["Alle vluchten"])
     
     # Filter de dataset op basis van de selectie
     if selected_flight != "Alle vluchten":
