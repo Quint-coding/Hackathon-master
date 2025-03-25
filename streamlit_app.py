@@ -33,7 +33,7 @@ st.markdown(
 # Sidebar Navigation
 st.sidebar.title("📍 Navigatie")
 page = st.sidebar.radio("Ga naar", ["🔊 Home", 
-                                    "🔊 pagina 1", 
+                                    "🔊 Geoplot geluidoverlast", 
                                     "🔊 pagina 2", 
                                     "🔊 pagina 3"])
 
@@ -59,11 +59,11 @@ if page == "🔊 Home":
     - Quint Klaassen
     """)
 
-elif page == "🔊 pagina 1":
-    st.title("Geluid overlast")
-    st.subheader("Welkom bij ons schiphol dashboard over geluid overlast")
+elif page == "🔊 Geoplot geluidoverlast":
+    st.title("Geoplot geluidoverlast")
+    st.subheader("Schiphol Geo visualisatie van het geluidsoverlast van diverse vluchten")
 
-    st.write("""hello""")
+    st.write("""Kies hieronder de type vlucht en welke vluchten geanalyseerd worden voor hun overlast""")
 
     @st.cache_data
     def load_and_process_data():
@@ -105,8 +105,9 @@ elif page == "🔊 pagina 1":
     # Laad de data en vluchtsoorten met behulp van de gecachte functie
     df, vlucht_types, vluchten = load_and_process_data()
 
-    # Streamlit interface - Keuze tussen Aankomst of Vertrek
-    selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
+    # # Streamlit interface - Keuze tussen Aankomst of Vertrek
+    # selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
+    selected_types = st.multiselect("Selecteer type(n) vlucht:", vlucht_types, default=vlucht_types)  # Standaard: beide geselecteerd
 
     # Filter de dataset op basis van vluchtsoort
     df = df[df['FlightType'] == selected_type]
