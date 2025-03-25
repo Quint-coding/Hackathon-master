@@ -79,7 +79,7 @@ elif page == "🔊 Geoplot geluidoverlast":
         # Simuleer tijdelijke geluidsdata (Noise_Level)
         np.random.seed(42)
         df['Noise_Level'] = np.random.randint(50, 100, size=len(df))
-        df['Noise_Level'] = df['Noise_Level'] * 5
+        # df['Noise_Level'] = df['Noise_Level'] * 5
         
         # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
         vlucht_types = df['FlightType'].unique().tolist()
@@ -117,28 +117,6 @@ elif page == "🔊 Geoplot geluidoverlast":
     if "Alle vluchten" not in selected_flights:
         df = df[df['FlightNumber'].isin(selected_flights)]
     
-    # Noise aan toevoegen
-    # Route-lagen per vlucht
-    # route_layers = []
-    # for flight_number, flight_df in df.groupby('FlightNumber'):
-    #     route_coordinates = flight_df[['Longitude', 'Latitude', 'Speed_kts', 'Altitude_feet']].values.tolist() # voeg speed_kts en Altitude_feet toe
-
-    #     if len(route_coordinates) > 1:
-    #         route_layers.append(
-    #             pdk.Layer(
-    #                 "PathLayer",
-    #                 data=df
-    #                 # [{"path": [coord[:2] for coord in route_coordinates], # gebruik alleen Longitude en Latitude voor de route
-    #                 #     "FlightNumber": flight_number,
-    #                 #     "Speed_kts": coord[2], # voeg speed_kts toe
-    #                 #     "Altitude_feet": coord[3]} for coord in route_coordinates], # voeg Altitude_feet toe
-    #                 get_path="path",
-    #                 get_width=4,
-    #                 get_color=[100, 100, 255],
-    #                 width_min_pixels=2,
-    #                 pickable=True,
-    #             )
-    #         )
     route_layers = []
     for flight_number, flight_df in df.groupby('FlightNumber'):
         route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
@@ -161,7 +139,7 @@ elif page == "🔊 Geoplot geluidoverlast":
         "ScatterplotLayer",
         data=df,
         get_position=["Longitude", "Latitude"],
-        get_radius=500,
+        get_radius='Noise_Level',
         get_fill_color="color",
         pickable=True,
         opacity=0.3,
