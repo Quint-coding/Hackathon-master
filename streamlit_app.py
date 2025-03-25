@@ -89,9 +89,9 @@ elif page == "🔊 Geoplot geluidoverlast":
         def get_noise_color(noise_level):
             """Geeft een kleur op basis van de geluidssterkte"""
             if noise_level < 65:
-                return [0, 255, 0, 80]  # Groen (rustig)
+                return [0, 255, 0, 100]  # Groen (rustig)
             elif noise_level < 80:
-                return [255, 165, 0, 130]  # Oranje (middelmatig geluid)
+                return [255, 165, 0, 150]  # Oranje (middelmatig geluid)
             else:
                 return [255, 0, 0, 200]  # Rood (luid)
         
