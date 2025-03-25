@@ -130,7 +130,7 @@ elif page == "🔊 Geoplot geluidoverlast":
                     get_path="path",
                     get_width=4,
                     get_color=[100, 100, 255, 0.5],
-                    # width_min_pixels=2,
+                    width_min_pixels=2,
                     pickable=True, # pickable toegevoegd.
                 )
             )
