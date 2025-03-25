@@ -160,6 +160,8 @@ elif page == "🔊 Geoplot geluidoverlast":
         map_style="mapbox://styles/mapbox/streets-v11",
         tooltip={
             "html": "<b>Vlucht ID:</b> {FlightNumber}",
+            "html": "<b>Vlucht ID:</b> {FlightNumber}",
+            "html": "<b>Vlucht ID:</b> {FlightNumber}",
             "style": {
                 "backgroundColor": "white",
                 "color": "black",
