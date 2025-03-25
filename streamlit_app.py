@@ -159,13 +159,7 @@ elif page == "🔊 Geoplot geluidoverlast":
         initial_view_state=initial_view_state,
         map_style="mapbox://styles/mapbox/streets-v11",
         tooltip={
-            "html": "<b>Altitude:</b> {Altitude_feet}",
-            "style": {
-                "backgroundColor": "white",
-                "color": "black",
-                "z-index": "10000"
-            },
-            "html": "<b>Altitude:</b> {Altitude_feet}",
+            "html": "<b>Altitude:</b> {Altitude_feet}<br/><b>Altitude:</b> {Altitude_feet}",
             "style": {
                 "backgroundColor": "white",
                 "color": "black",
