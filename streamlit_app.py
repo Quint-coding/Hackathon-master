@@ -177,7 +177,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     # # Noise aan toevoegen
     # Maak een pydeck Deck (kaart)
     deck = pdk.Deck(
-    layers=[radius_layer] + route_layers,
+    layers=route_layers + [radius_layer],
     initial_view_state=initial_view_state,
     map_style="mapbox://styles/mapbox/streets-v11",
     tooltip={
