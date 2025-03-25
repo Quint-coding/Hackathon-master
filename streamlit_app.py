@@ -219,7 +219,7 @@ elif page == "🔊 Geoplot geluidoverlast":
                         data=[{"path": route_coordinates, "FlightNumber": flight_number}],  # FlightNumber toegevoegd
                         get_path="path",
                         get_width=4,
-                        get_color=[135, 206, 250],
+                        get_color=[65, 106, 235],
                         width_min_pixels=2,
                         pickable=True, # pickable toegevoegd.
                     )
