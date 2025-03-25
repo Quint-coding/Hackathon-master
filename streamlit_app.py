@@ -80,6 +80,7 @@ elif page == "🔊 pagina 1":
     # Simuleer tijdelijke geluidsdata (Noise_Level)
     np.random.seed(42)
     df['Noise_Level'] = np.random.randint(50, 100, size=len(df))
+    df['Noise_Level'] = df['Noise_Level'] * 5
     
     # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
     vlucht_types = df['FlightType'].unique().tolist()
@@ -134,7 +135,7 @@ elif page == "🔊 pagina 1":
         "ScatterplotLayer",
         data=df,
         get_position=["Longitude", "Latitude"],
-        get_radius=(['Noise_Level'] * 5),
+        get_radius=['Noise_Level'],
         get_fill_color="color",
         pickable=True,
         opacity=0.3,
