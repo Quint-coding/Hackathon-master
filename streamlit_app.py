@@ -218,72 +218,45 @@ elif page == "🔊 pagina 2":
 
     st.write("""hello""")
 
-    # Load processed flight data
-    with open("processed_data.json", "r") as f:
-        data = json.load(f)
+    df = pd.read_csv('timestamp vlucht data.csv')
+    
+    # Sidebar Controls
+    st.sidebar.header("Flight Path Selector")
+    selected_flight = st.sidebar.selectbox("Select a Flight", ["All Flights"] + list(df["FlightNumber"].unique()))
+    selected_time = st.sidebar.slider("Select Time", 
+                                    min_value=df["datetime"].min(), 
+                                    max_value=df["datetime"].max(),
+                                    value=df["datetime"].min(), 
+                                    format="%H:%M:%S")
 
-    # Extract unique flight names for dropdown
-    flight_options = {item["agent_id"]: f"Flight {item['agent_id']}" for item in data}
+    # Filter Data
+    if selected_flight != "All Flights":
+        df = df[df["FlightNumber"] == selected_flight]
+    df = df[df["datetime"] <= selected_time]
 
-    # Streamlit UI
-    st.title("Live Flight Positions ✈️")
-    st.sidebar.header("Filters")
+    # Map Visualization
+    st.pydeck_chart(pdk.Deck(
+        map_style='mapbox://styles/mapbox/light-v9',
+        initial_view_state=pdk.ViewState(
+            latitude=df["Latitude"].mean(),
+            longitude=df["Longitude"].mean(),
+            zoom=12,
+            pitch=50,
+        ),
+        layers=[
+            pdk.Layer(
+                "LineLayer",
+                data=df,
+                get_source_position='[Longitude, Latitude]',
+                get_target_position='[Longitude, Latitude]',
+                get_color='[200, 30, 0, 160]',
+                width_min_pixels=3,
+            )
+        ]
+    ))
 
-    # Dropdown to select a flight (optional)
-    selected_flight_id = st.sidebar.selectbox("Select a Flight", options=[-1] + list(flight_options.keys()), format_func=lambda x: "All Flights" if x == -1 else flight_options[x])
-
-    # Extract min/max time from data
-    all_times = [t for flight in data for t in flight["time"]]
-    min_time, max_time = (min(all_times), max(all_times)) if all_times else (0, 1000)
-
-    # Slider to filter by time
-    selected_time = st.sidebar.slider("Select Time", min_time, max_time, min_time)
-
-    # Filter data based on selections
-    filtered_data = [
-        flight for flight in data 
-        if (selected_flight_id == -1 or flight["agent_id"] == selected_flight_id)  # Filter by flight
-        and selected_time in flight["time"]  # Filter by time
-    ]
-
-    # Extract only the latest position for each plane at the selected time
-    scatter_data = []
-    for flight in filtered_data:
-        idx = flight["time"].index(selected_time) if selected_time in flight["time"] else -1
-        if idx != -1:
-            lon, lat, alt = flight["path"][idx]
-            scatter_data.append({
-                "position": [lon, lat],  
-                "color": flight["color"],
-                "size": 100,  # Adjust point size here
-                "flight": flight["agent_id"]
-            })
-
-    # Define PyDeck scatterplot layer
-    layer = pdk.Layer(
-        "ScatterplotLayer",
-        scatter_data,
-        get_position="position",
-        get_color="color",
-        get_radius="size",
-        pickable=True,  # Enables interaction
-    )
-
-    # Auto-center map based on flight positions
-    latitudes = [p["position"][1] for p in scatter_data]
-    longitudes = [p["position"][0] for p in scatter_data]
-
-    view_state = pdk.ViewState(
-        latitude=np.mean(latitudes) if latitudes else 52.308,  
-        longitude=np.mean(longitudes) if longitudes else 4.762,  
-        zoom=9,
-        bearing=0,
-        pitch=45
-    )
-
-    # Create and render map
-    deck = pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip={"text": "Flight ID: {flight}"})
-    st.pydeck_chart(deck)
+    st.write("### Flight Data Table")
+    st.dataframe(df)
 
 elif page == "🔊 pagina 3":
     st.title("Geluid overlast")
