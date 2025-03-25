@@ -49,12 +49,10 @@ if page == "🔊 Home":
     
     
     De kaagbaan en polderbaan hebben respectievelijk voorkeur voor aankomende en vertrekkende vluchten, dit omdat deze banen voor minder overlast zorgen. 
-             Het wil nog wel eens voorkomen dat er voor andere banen gekozen wordt wegens de veiligheid, het zicht, de wind- en weersomstandigheden, de milieuregels en de beschikbaarheid van de banen.
+        Het wil nog wel eens voorkomen dat er voor andere banen gekozen wordt wegens de veiligheid, het zicht, de wind- en weersomstandigheden, de milieuregels en de beschikbaarheid van de banen.
 
     op basis van data over het weer en omwonende bepalen hoe de landingsbanen anders ingericht kunnen worden.
              
-    optie om klachten aantal  op een kaart te visualiseren
-
     Team 8:
     - Tammo van Leeuwen, 
     - Jorik Stavenuiter, 
@@ -154,7 +152,7 @@ elif page == "🔊 pagina 1":
         latitude=52.308056,
         longitude=4.764167,
         zoom=8,
-        pitch=0,
+        pitch=30,
     )
     
     # Maak een pydeck Deck (kaart)
