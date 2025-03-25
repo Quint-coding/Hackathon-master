@@ -105,11 +105,8 @@ elif page == "🔊 Geoplot geluidoverlast":
     # Laad de data en vluchtsoorten met behulp van de gecachte functie
     df, vlucht_types, vluchten = load_and_process_data()
 
-    # # Streamlit interface - Keuze tussen Aankomst of Vertrek
-    # selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
-    selected_type = st.multiselect("Selecteer type(n) vlucht:", vlucht_types
-                                #    , default=vlucht_types
-                                   )  # Standaard: beide geselecteerd
+    # Streamlit interface - Keuze tussen Aankomst of Vertrek
+    selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
 
     # Filter de dataset op basis van vluchtsoort
     df = df[df['FlightType'] == selected_type]
