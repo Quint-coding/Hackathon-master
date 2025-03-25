@@ -155,7 +155,7 @@ elif page == "🔊 pagina 1":
 
     layer = pdk.Layer(
         "TripsLayer",
-        grouped,
+        data,
         get_path="paths",
         get_timestamps="timestamps",
         get_color=[253, 128, 93],
