@@ -129,7 +129,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     # Streamlit multiselect met de aangepaste lijst
     selected_flights = st.multiselect("Selecteer vlucht(en):", vluchten_met_type, default=["Alle vluchten"])
     
-    
+
     # Check of "Alle vluchten" is geselecteerd
     if "Alle vluchten" not in selected_flights:
         df = df[df['FlightNumber'].isin(selected_flights)]
@@ -142,7 +142,8 @@ elif page == "🔊 Geoplot geluidoverlast":
             route_layers.append(
                 pdk.Layer(
                     "PathLayer",
-                    data=[{"path": route_coordinates, "FlightNumber": flight_number}],  # FlightNumber toegevoegd
+                    # data=[{"path": route_coordinates, "FlightNumber": flight_number}],  # FlightNumber toegevoegd
+                    data=[{"path": route_coordinates, "FlightNumber": flight_number, "Course": flight_df['Course'].iloc[0], "Speed": flight_df['Speed'].iloc[0]}],
                     get_path="path",
                     get_width=4,
                     get_color=[100, 100, 255],
@@ -178,7 +179,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     initial_view_state=initial_view_state,
     map_style="mapbox://styles/mapbox/streets-v11",
     tooltip={
-        "html": "<b>Vlucht ID:</b> {FlightNumber}",
+        "html": "<b>Vlucht ID:</b> {FlightNumber}<br/><b>Course:</b> {Course}<br/><b>Speed:</b> {Speed}",
         "style": {
             "backgroundColor": "white",
             "color": "black",
