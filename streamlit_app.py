@@ -189,8 +189,7 @@ elif page == "🔊 Geoplot geluidoverlast":
         }
     }
 )
- 
-    
+
     # Toon de kaart in Streamlit
     st.pydeck_chart(deck)
     
@@ -200,6 +199,113 @@ elif page == "🔊 pagina 2":
     st.subheader("Welkom bij ons schiphol dashboard over geluid overlast")
 
     st.write("""hello""")
+
+    @st.cache_data
+    def load_and_process_data():
+        df = pd.read_csv('timestamp vlucht data.csv')
+        
+        # Converteer kolommen naar numerieke waarden
+        df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
+        df['Longitude'] = pd.to_numeric(df['Longitude'], errors='coerce')
+        
+        # Filter rijen met ontbrekende waarden
+        df = df.dropna(subset=['Latitude', 'Longitude', 'FlightType', 'FlightNumber'])
+        
+        # Simuleer tijdelijke geluidsdata (Noise_Level)
+        np.random.seed(42)
+        df['Noise_Level'] = np.random.randint(50, 100, size=len(df))
+        df['Noise_Level'] = df['Noise_Level'] * 5
+        
+        # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
+        vlucht_types = df['FlightType'].unique().tolist()
+        vlucht_types.sort()
+
+        # Kleur bepalen op basis van Noise_Level
+        def get_noise_color(noise_level):
+            """Geeft een kleur op basis van de geluidssterkte"""
+            if noise_level < 65:
+                return [0, 255, 0, 100]  # Groen (rustig)
+            elif noise_level < 80:
+                return [255, 165, 0, 150]  # Oranje (middelmatig geluid)
+            else:
+                return [255, 0, 0, 200]  # Rood (luid)
+        
+        df['color'] = df['Noise_Level'].apply(get_noise_color)
+
+        # Unieke vluchten ophalen en multiselect maken
+        vluchten = df['FlightNumber'].unique().tolist()
+        
+        return df, vlucht_types, vluchten
+
+    # Laad de data en vluchtsoorten met behulp van de gecachte functie
+    df, vlucht_types, vluchten = load_and_process_data()
+
+    # Streamlit interface - Keuze tussen Aankomst of Vertrek
+    selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
+
+    # Filter de dataset op basis van vluchtsoort
+    df = df[df['FlightType'] == selected_type]
+
+    selected_flights = st.multiselect("Selecteer vlucht(en):", ["Alle vluchten"] + vluchten, default=["Alle vluchten"])
+    
+    # Check of "Alle vluchten" is geselecteerd
+    if "Alle vluchten" not in selected_flights:
+        df = df[df['FlightNumber'].isin(selected_flights)]
+    
+    # Route-lagen per vlucht
+    route_layers = []
+    for flight_number, flight_df in df.groupby('FlightNumber'):
+        route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
+    
+        if len(route_coordinates) > 1:
+            route_layers.append(
+                pdk.Layer(
+                    "PathLayer",
+                    data=[{"path": route_coordinates, "FlightNumber": flight_number}],  # FlightNumber toegevoegd
+                    get_path="path",
+                    get_width=4,
+                    get_color=[100, 100, 255],
+                    width_min_pixels=2,
+                    pickable=True, # pickable toegevoegd.
+                )
+            )
+    
+    # Geluidsimpact toevoegen als cirkels rond elke locatie
+    radius_layer = pdk.Layer(
+        "ScatterplotLayer",
+        data=df,
+        get_position=["Longitude", "Latitude"],
+        get_radius='Noise_Level',
+        get_fill_color="color",
+        pickable=True,
+        opacity=0.3,
+    )
+    
+    # Definieer de initiële weergave van de kaart
+    initial_view_state = pdk.ViewState(
+        latitude=52.308056,
+        longitude=4.764167,
+        zoom=8,
+        pitch=0,
+    )
+    
+    # Maak een pydeck Deck (kaart)
+    deck = pdk.Deck(
+        layers=route_layers + [radius_layer],
+        initial_view_state=initial_view_state,
+        map_style="mapbox://styles/mapbox/streets-v11",
+        tooltip={
+            "html": "<b>Vlucht ID:</b> {FlightNumber}",
+            "style": {
+                "backgroundColor": "white",
+                "color": "black",
+                "z-index": "10000"
+            }
+        }
+    )
+    
+    # Toon de kaart in Streamlit
+    st.pydeck_chart(deck)
 
 elif page == "🔊 pagina 3":
     st.title("Geluid overlast")
