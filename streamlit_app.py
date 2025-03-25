@@ -161,7 +161,7 @@ elif page == "🔊 Geoplot geluidoverlast":
         "ScatterplotLayer",
         data=df,
         get_position=["Longitude", "Latitude"],
-        get_radius='Noise_Level',
+        get_radius=500,
         get_fill_color="color",
         pickable=True,
         opacity=0.3,
