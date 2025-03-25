@@ -4,3 +4,4 @@ pandas
 pydeck
 datetime
 # plotly
+matplotlib
