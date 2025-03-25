@@ -3,4 +3,4 @@ numpy
 pandas
 pydeck
 datetime
-plotly
+# plotly

@@ -4,7 +4,7 @@ import numpy as np
 import pydeck as pdk
 from datetime import datetime
 import json
-import plotly.express as px
+# import plotly.express as px
 
 # Set page configuration
 st.set_page_config(page_title="Schiphol geluidoverlast Dashboard", page_icon="🔊", layout="wide")
@@ -77,6 +77,10 @@ elif page == "🔊 pagina 1":
     # Filter rijen met ontbrekende waarden
     df = df.dropna(subset=['Latitude', 'Longitude', 'FlightType', 'FlightNumber'])
     
+    # Simuleer tijdelijke geluidsdata (Noise_Level)
+    np.random.seed(42)
+    df['Noise_Level'] = np.random.randint(50, 100, size=len(df))
+    
     # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
     vlucht_types = df['FlightType'].unique().tolist()
     vlucht_types.sort()
@@ -95,15 +99,20 @@ elif page == "🔊 pagina 1":
     if "Alle vluchten" not in selected_flights:
         df = df[df['FlightNumber'].isin(selected_flights)]
     
-    # Maak een lijst van vluchten als afzonderlijke routes
-    route_layers = []
-
-    colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 0], [255, 165, 0]]  # Rood, Groen, Blauw, Geel, Oranje
-    color_map = {flight: colors[i % len(colors)] for i, flight in enumerate(df['FlightNumber'].unique())}
-
-    # Convert colors to RGBA with alpha 0.8
-    color_map = {flight: f"rgba{tuple(map(int, color[:3])) + (0.8,)}" for flight, color in zip(df['FlightNumber'].unique(), [px.colors.hex_to_rgb(c) for c in colors])}
+    # Kleur bepalen op basis van Noise_Level
+    def get_noise_color(noise_level):
+        """Geeft een kleur op basis van de geluidssterkte"""
+        if noise_level < 65:
+            return [0, 255, 0, 100]  # Groen (rustig)
+        elif noise_level < 80:
+            return [255, 165, 0, 150]  # Oranje (middelmatig geluid)
+        else:
+            return [255, 0, 0, 200]  # Rood (luid)
     
+    df['color'] = df['Noise_Level'].apply(get_noise_color)
+    
+    # Route-lagen per vlucht
+    route_layers = []
     for flight_number, flight_df in df.groupby('FlightNumber'):
         route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
     
@@ -111,13 +120,25 @@ elif page == "🔊 pagina 1":
             route_layers.append(
                 pdk.Layer(
                     "PathLayer",
-                    data=[{"path": route_coordinates}],
+                    data=[{"path": route_coordinates, "FlightNumber": flight_number}],  # FlightNumber toegevoegd
                     get_path="path",
                     get_width=4,
-                    get_color=color_map[flight_number],
+                    get_color=[100, 100, 255],
                     width_min_pixels=2,
+                    pickable=True, # pickable toegevoegd.
                 )
             )
+    
+    # Geluidsimpact toevoegen als cirkels rond elke locatie
+    radius_layer = pdk.Layer(
+        "ScatterplotLayer",
+        data=df,
+        get_position=["Longitude", "Latitude"],
+        get_radius=500,
+        get_fill_color="color",
+        pickable=True,
+        opacity=0.3,
+    )
     
     # Definieer de initiële weergave van de kaart
     initial_view_state = pdk.ViewState(
@@ -129,9 +150,17 @@ elif page == "🔊 pagina 1":
     
     # Maak een pydeck Deck (kaart)
     deck = pdk.Deck(
-        layers=route_layers,
+        layers=route_layers + [radius_layer],
         initial_view_state=initial_view_state,
         map_style="mapbox://styles/mapbox/streets-v11",
+        tooltip={
+            "html": "<b>Vlucht ID:</b> {FlightNumber}",
+            "style": {
+                "backgroundColor": "white",
+                "color": "black",
+                "z-index": "10000"
+            }
+        }
     )
     
     # Toon de kaart in Streamlit
