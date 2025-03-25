@@ -4,7 +4,7 @@ import numpy as np
 import pydeck as pdk
 from datetime import datetime
 import json
-# import plotly.express as px
+import plotly.express as px
 
 # Set page configuration
 st.set_page_config(page_title="Schiphol geluidoverlast Dashboard", page_icon="🔊", layout="wide")
@@ -95,10 +95,13 @@ elif page == "🔊 pagina 1":
     if "Alle vluchten" not in selected_flights:
         df = df[df['FlightNumber'].isin(selected_flights)]
     
-    # Maak een lijst van vluchten als afzonderlijke routes
-    route_layers = []
-    colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 0], [255, 165, 0]]  # Rood, Groen, Blauw, Geel, Oranje
-    color_map = {flight: colors[i % len(colors)] for i, flight in enumerate(df['FlightNumber'].unique())}
+
+    # Generate a color scale using Plotly
+    num_flights = len(df['FlightNumber'].unique())
+    colors = px.colors.sample_colorscale("viridis", [i / max(1, num_flights - 1) for i in range(num_flights)])
+
+    # Convert colors to RGBA with alpha 0.8
+    color_map = {flight: f"rgba{tuple(map(int, color[:3])) + (0.8,)}" for flight, color in zip(df['FlightNumber'].unique(), [px.colors.hex_to_rgb(c) for c in colors])}
     
     for flight_number, flight_df in df.groupby('FlightNumber'):
         route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
