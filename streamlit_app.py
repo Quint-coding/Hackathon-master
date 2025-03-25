@@ -68,196 +68,83 @@ elif page == "🔊 pagina 1":
     st.write("""hello""")
 
     df = pd.read_csv('timestamp vlucht data.csv')
-
-    # df["coordinates"] = df["waypoints"].apply(lambda f: [item["coordinates"] for item in f])
-    # df["timestamps"] = df["waypoints"].apply(lambda f: [item["timestamp"] - 1554772579000 for item in f])
-
-    # df.drop(["waypoints"], axis=1, inplace=True)
-
-    # df['path'] = df['Latitude'].astype('string') + ", " + df['Longitude'].astype('string')
-
-    # df['path'] = df.apply(lambda row: [[row['Longitude'], row['Latitude']]], axis=1)
-
-    # Group data into paths (TripsLayer expects an array of coordinate lists)
-    # df_grouped = df.groupby(lambda x: 0)[['Longitude', 'Latitude']].apply(lambda x: x.values.tolist()).reset_index(name="path")
-
-    # # Add timestamps for animation
-    # df_grouped['timestamp'] = [df['timestamp'].tolist()]
-
-    # df["coordinates"] = df["waypoints"].apply(lambda f: [item["coordinates"] for item in f])
-    # df["timestamps"] = df["waypoints"].apply(lambda f: [item["timestamp"] - 1554772579000 for item in f])
-
-    # # Group by FlightNumber to create paths
-    # grouped = df.groupby("FlightNumber").agg({
-    #     "coordinates": list,  # Create a list of coordinate pairs per flight
-    #     "timestamps": list    # Create a list of timestamps per flight
-    # }).reset_index()
-
-    # # Rename columns to match PyDeck requirements
-    # grouped.rename(columns={"coordinates": "paths"}, inplace=True)
-
-
-    # # Create 'path' column with [Longitude, Latitude, Altitude] format
-    # df["path"] = df.apply(lambda row: [row["Longitude"], row["Latitude"], row.get("Altitude_feet", 0) or 0.0], axis=1)
-
-    # # Normalize timestamps (convert from milliseconds to seconds)
-    # df["time"] = (df["timestamp"] - 1554772579000) // 1000  # Convert to seconds
-
-    # # Assign unique IDs based on FlightNumber (or row index if no FlightNumber exists)
-    # df["agent_id"] = pd.factorize(df["FlightNumber"])[0]  # Convert unique flight numbers to agent IDs
-
-    # # Define random colors for each agent
-    # unique_agents = df["agent_id"].unique()
-    # colors = {agent_id: np.random.randint(50, 255, size=3).tolist() for agent_id in unique_agents}  # Generate RGB colors
-
-    # # Group data by FlightNumber (agent_id)
-    # grouped = df.groupby("agent_id").agg({
-    #     "path": list,  # List of [lon, lat, alt] points
-    #     "time": list   # List of timestamps
-    # }).reset_index()
-
-    # # Add colors
-    # grouped["color"] = grouped["agent_id"].map(colors)
-
-    # # Convert to final JSON format
-    # data = grouped.to_dict(orient="records")
-
-    # # Save to a JSON file (if needed)
-    # with open("processed_data.json", "w") as f:
-    #     json.dump(data, f, indent=4)
-
-    # Group by FlightNumber to create flight paths
-    df_grouped = df.groupby("FlightNumber").agg({
-        "Longitude": list,  # List of longitudes
-        "Latitude": list,  # List of latitudes
-        "Altitude_feet": lambda x: list(x.fillna(0))  # Ensure altitude exists
-    }).reset_index()
-
-    # Convert to the required path format [[lon, lat, alt], ...]
-    df_grouped["path"] = df_grouped.apply(lambda row: 
-        [[lon, lat, alt] for lon, lat, alt in zip(row["Longitude"], row["Latitude"], row["Altitude_feet"])], axis=1)
-
-    # Normalize timestamps
-    df["time"] = (df["timestamp"] - 1554772579000) // 1000  # Convert to seconds
-
-    # Assign unique agent IDs
-    df_grouped["agent_id"] = pd.factorize(df_grouped["FlightNumber"])[0]
-
-    # Generate colors per flight
-    unique_agents = df_grouped["agent_id"].unique()
-    colors = {agent_id: np.random.randint(50, 255, size=3).tolist() for agent_id in unique_agents}
-    df_grouped["color"] = df_grouped["agent_id"].map(colors)
-
-    # Convert timestamps per flight
-    df_grouped["time"] = df.groupby("FlightNumber")["time"].apply(list).reset_index(drop=True)
-
-    # Convert to final JSON format
-    data = df_grouped.to_dict(orient="records")
-
-    layer = pdk.Layer(
-        "TripsLayer",
-        data,
-        get_path="paths",
-        get_timestamps="timestamps",
-        get_color=[253, 128, 93],
-        opacity=0.8,
-        width_min_pixels=5,
-        rounded=True,
-        trail_length=600,
-        current_time=500,
+    
+    # Converteer kolommen naar numerieke waarden
+    df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
+    df['Longitude'] = pd.to_numeric(df['Longitude'], errors='coerce')
+    
+    # Filter rijen met ontbrekende waarden
+    df = df.dropna(subset=['Latitude', 'Longitude', 'FlightType', 'FlightNumber'])
+    
+    # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
+    vlucht_types = df['FlightType'].unique().tolist()
+    vlucht_types.sort()
+    
+    # Streamlit interface - Keuze tussen Aankomst of Vertrek
+    selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
+    
+    # Filter de dataset op basis van vluchtsoort
+    df = df[df['FlightType'] == selected_type]
+    
+    # Unieke vluchten ophalen
+    vluchten = df['FlightNumber'].unique().tolist()
+    vluchten.insert(0, "Alle vluchten")  # Voeg optie toe om alles te tonen
+    
+    # Streamlit interface - Keuze van vlucht
+    selected_flight = st.selectbox("Selecteer een vlucht:", vluchten)
+    
+    # Filter de dataset op basis van de selectie
+    if selected_flight != "Alle vluchten":
+        df = df[df['FlightNumber'] == selected_flight]
+    
+    # Maak een lijst van vluchten als afzonderlijke routes
+    route_layers = []
+    for flight_number, flight_df in df.groupby('FlightNumber'):
+        route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
+    
+        # Voeg alleen routes toe met minstens twee punten
+        if len(route_coordinates) > 1:
+            # Kleur bepalen: Blauw voor Aankomst, Groen voor Vertrek, Rood als een specifieke vlucht is geselecteerd
+            if selected_flight != "Alle vluchten":
+                color = [255, 0, 0]  # Rood voor de geselecteerde vlucht
+            else:
+                color = [0, 0, 255] if selected_type == "Arrivals" else [0, 255, 0]  # Blauw = Aankomst, Groen = Vertrek
+    
+            route_layers.append(
+                pdk.Layer(
+                    "PathLayer",
+                    data=[{"path": route_coordinates}],
+                    get_path="path",
+                    get_width=4,
+                    get_color=color,
+                    width_min_pixels=2,
+                )
+            )
+    
+    # Definieer de initiële weergave van de kaart
+    initial_view_state = pdk.ViewState(
+        latitude=df['Latitude'].mean(),
+        longitude=df['Longitude'].mean(),
+        zoom=8,
+        pitch=0,
     )
-
-    view_state = pdk.ViewState(latitude=52.3080392, 
-                               longitude=4.7621975, 
-                               zoom=11, 
-                               bearing=0, 
-                               pitch=45)
-
-    deck = pdk.Deck(layers=[layer], initial_view_state=view_state)
-
-    # Render the map in Streamlit
+    
+    # Maak een pydeck Deck (kaart)
+    deck = pdk.Deck(
+        layers=route_layers,
+        initial_view_state=initial_view_state,
+        map_style="mapbox://styles/mapbox/streets-v11",
+    )
+    
+    # Toon de kaart in Streamlit
     st.pydeck_chart(deck)
-
-    # with open("processed_data.json", "r") as f:
-    #     data = json.load(f)
-
-    # # Define the PyDeck Layer
-    # layer = pdk.Layer(
-    #     "TripsLayer",
-    #     data,
-    #     get_path="path",  # Matches the key in our JSON
-    #     get_timestamps="time",  # Matches the key in our JSON
-    #     get_color="color",  # Uses the precomputed color per agent
-    #     opacity=0.8,
-    #     width_min_pixels=5,
-    #     rounded=True,
-    #     trail_length=600,
-    #     current_time=500,
-    # )
-
-    # # Compute center for the map view
-    # latitudes = [coord[1] for item in data for coord in item["path"]]
-    # longitudes = [coord[0] for item in data for coord in item["path"]]
-
-    # view_state = pdk.ViewState(
-    #     latitude=sum(latitudes) / len(latitudes),  
-    #     longitude=sum(longitudes) / len(longitudes),  
-    #     zoom=11,
-    #     bearing=0,
-    #     pitch=45
-    # )
-
-    # # Create the deck
-    # deck = pdk.Deck(layers=[layer], initial_view_state=view_state)
-
-    # # Render the map in Streamlit
-    # st.pydeck_chart(deck)
+    
 
 elif page == "🔊 pagina 2":
     st.title("Geluid overlast")
     st.subheader("Welkom bij ons schiphol dashboard over geluid overlast")
 
     st.write("""hello""")
-
-    df = pd.read_csv('timestamp vlucht data.csv')
-    
-    # Sidebar Controls
-    st.sidebar.header("Flight Path Selector")
-    selected_flight = st.sidebar.selectbox("Select a Flight", ["All Flights"] + list(df["FlightNumber"].unique()))
-    selected_time = st.sidebar.slider("Select Time", 
-                                    min_value=df["datetime"].min(), 
-                                    max_value=df["datetime"].max(),
-                                    value=df["datetime"].min(), 
-                                    format="%H:%M:%S")
-
-    # Filter Data
-    if selected_flight != "All Flights":
-        df = df[df["FlightNumber"] == selected_flight]
-    df = df[df["datetime"] <= selected_time]
-
-    # Map Visualization
-    st.pydeck_chart(pdk.Deck(
-        map_style='mapbox://styles/mapbox/light-v9',
-        initial_view_state=pdk.ViewState(
-            latitude=df["Latitude"].mean(),
-            longitude=df["Longitude"].mean(),
-            zoom=12,
-            pitch=50,
-        ),
-        layers=[
-            pdk.Layer(
-                "LineLayer",
-                data=df,
-                get_source_position='[Longitude, Latitude]',
-                get_target_position='[Longitude, Latitude]',
-                get_color='[200, 30, 0, 160]',
-                width_min_pixels=3,
-            )
-        ]
-    ))
-
-    st.write("### Flight Data Table")
-    st.dataframe(df)
 
 elif page == "🔊 pagina 3":
     st.title("Geluid overlast")
