@@ -134,7 +134,7 @@ elif page == "🔊 pagina 1":
         "ScatterplotLayer",
         data=df,
         get_position=["Longitude", "Latitude"],
-        get_radius=['Noise_Level'],
+        get_radius=(['Noise_Level'] * 5),
         get_fill_color="color",
         pickable=True,
         opacity=0.3,
