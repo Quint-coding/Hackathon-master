@@ -95,6 +95,11 @@ elif page == "🔊 pagina 1":
     if "Alle vluchten" not in selected_flights:
         df = df[df['FlightNumber'].isin(selected_flights)]
     
+    # Maak een lijst van vluchten als afzonderlijke routes
+    route_layers = []
+    
+    # colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 0], [255, 165, 0]]  # Rood, Groen, Blauw, Geel, Oranje
+    # color_map = {flight: colors[i % len(colors)] for i, flight in enumerate(df['FlightNumber'].unique())}
 
     # Generate a color scale using Plotly
     num_flights = len(df['FlightNumber'].unique())
