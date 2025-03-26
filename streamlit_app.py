@@ -33,8 +33,8 @@ st.markdown(
 # Sidebar Navigation
 st.sidebar.title("📍 Navigatie")
 page = st.sidebar.radio("Ga naar", ["🔊 Home", 
+                                    "🔊 Theoretische context", 
                                     "🔊 Geoplot geluidoverlast", 
-                                    "🔊 pagina 2", 
                                     "🔊 pagina 3"])
 
 # Home Page
@@ -61,6 +61,12 @@ if page == "🔊 Home":
     - Burhan Canbaz, 
     - Quint Klaassen
     """)
+
+elif page == "🔊 Theoretische context":
+    st.title("Natuurkundige overlast")
+    st.subheader("Hier zullen wij meer context geven bij de overlast veroorzaakt door vliegtuigen")
+
+    st.write("""Gebruik is gemaakt van de inverse square law om per vliegtuig model een coëfficient te berekenen dat weergeeft hoe luid een vligtuig direct onder zich is.""")
 
 elif page == "🔊 Geoplot geluidoverlast":
     st.title("Geoplot geluidoverlast")
@@ -193,13 +199,6 @@ elif page == "🔊 Geoplot geluidoverlast":
 
     # Toon de kaart in Streamlit
     st.pydeck_chart(deck)
-    
-
-elif page == "🔊 pagina 2":
-    st.title("Geluid overlast")
-    st.subheader("Welkom bij ons schiphol dashboard over geluid overlast")
-
-    st.write("""hello""")
 
 elif page == "🔊 pagina 3":
     st.title("Geluid overlast")
