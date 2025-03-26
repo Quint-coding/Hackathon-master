@@ -157,14 +157,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     # Geluidsimpact toevoegen als cirkels rond elke locatie
     radius_layer = pdk.Layer(
         "ScatterplotLayer",
-        data=[{
-            "path": route_coordinates, 
-            "FlightNumber": flight_number, 
-            "Course": flight_df['Course'].iloc[0], 
-            "Speed": flight_df['Speed_kph'].iloc[0], 
-            "Height": flight_df['Altitude_meters'].iloc[0],
-            "Datetime": flight_df['Time'].iloc[0]
-            }],
+        data=df,
         get_position=["Longitude", "Latitude"],
         get_radius='Noise_Level',
         get_fill_color="color",
