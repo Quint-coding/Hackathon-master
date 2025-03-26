@@ -92,32 +92,27 @@ elif page == "🔊 Geoplot geluidoverlast":
         vlucht_types.sort()
 
         # Kleur bepalen op basis van Noise_Level
-        def get_noise_color(altitude):
-            """Geeft een kleur op basis van de hoogte met een vloeiende overgang van rood naar lichtoranje naar lichtgroen"""
-            low_altitude = 500
-            medium_altitude = 2000
-            high_altitude = 3500
+        def get_noise_color(noise_level, min_noise=50, max_noise=100):
+            """
+            Geeft een kleur op basis van het geluidsniveau (Noise Level),
+            met een soepele overgang van rood (hoog geluid) naar lichtgroen (laag geluid).
 
-            if altitude < low_altitude:
-                return [255, 0, 0, 200]  # Rood (onder 500 meter)
-            elif low_altitude <= altitude < medium_altitude:
-                # Overgang van rood naar lichtoranje (500 tot 2000 meter)
-                factor = (altitude - low_altitude) / (medium_altitude - low_altitude)
-                rood = int(255)
-                groen = int(165 * factor)
-                blauw = int(0)
-                alpha = 200
-                return [rood, groen, blauw, alpha]
-            elif medium_altitude <= altitude < high_altitude:
-                # Overgang van lichtoranje naar lichtgroen (2000 tot 3500 meter)
-                factor = (altitude - medium_altitude) / (high_altitude - medium_altitude)
-                rood = int(255 * (1 - factor))
-                groen = int(165 + (255 - 165) * factor)
-                blauw = int(100 * (1 - factor))
-                alpha = 200
-                return [rood, groen, blauw, alpha]
-            else:
-                return [144, 238, 144, 180]  # Lichtgroen (boven 3500 meter)
+            - min_noise: Minimum geluidsniveau (bijv. 50 dB, lichtgroen)
+            - max_noise: Maximum geluidsniveau (bijv. 100 dB, rood)
+            """
+            # Beperk noise_level binnen het bereik
+            noise_level = max(min_noise, min(noise_level, max_noise))
+            
+            # Normaliseer noise_level tussen 0 en 1
+            factor = (noise_level - min_noise) / (max_noise - min_noise)
+            
+            # Overgang: Rood (hoge ruis) → Oranje → Geel → Lichtgroen (lage ruis)
+            rood = int(255 * (1 - factor))  # Van 255 (rood) naar 144 (lichtgroen)
+            groen = int(165 + (255 - 165) * factor)  # Van 165 (oranje) naar 255 (lichtgroen)
+            blauw = int(0 + (144 - 0) * factor)  # Van 0 naar 144 (lichtgroen)
+            alpha = 200  # Semi-transparant
+
+            return [rood, groen, blauw, alpha]
 
 
         df['color'] = df['Noise_Level'].apply(get_noise_color)
