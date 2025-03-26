@@ -136,29 +136,29 @@ elif page == "🔊 Geoplot geluidoverlast":
     else:
         df_filtered = df.copy()
 
-    # Streamlit slider om het aantal getoonde vluchten te selecteren
-    num_available_flights = len(df_filtered['FlightNumber'].unique())
-    max_flights_to_show = st.slider(
-        "Aantal vluchten om te tonen:",
-        min_value=5,
-        max_value=num_available_flights if num_available_flights > 0 else 5,
-        value=min(20, num_available_flights) if num_available_flights > 0 else 20,
-        step=5
-    )
+    # # Streamlit slider om het aantal getoonde vluchten te selecteren
+    # num_available_flights = len(df_filtered['FlightNumber'].unique())
+    # max_flights_to_show = st.slider(
+    #     "Aantal vluchten om te tonen:",
+    #     min_value=5,
+    #     max_value=num_available_flights if num_available_flights > 0 else 5,
+    #     value=min(20, num_available_flights) if num_available_flights > 0 else 20,
+    #     step=5
+    # )
     
-    # Haal een gesamplede subset van de DataFrame op basis van het aantal geselecteerde vluchten
-    unique_flights_to_show = df_filtered['FlightNumber'].unique()
-    if len(unique_flights_to_show) > max_flights_to_show:
-        selected_flight_subset = np.random.choice(unique_flights_to_show, size=max_flights_to_show, replace=False)
-        df_to_visualize = df_filtered[df_filtered['FlightNumber'].isin(selected_flight_subset)].copy()
-    else:
-        df_to_visualize = df_filtered.copy()
+    # # Haal een gesamplede subset van de DataFrame op basis van het aantal geselecteerde vluchten
+    # unique_flights_to_show = df_filtered['FlightNumber'].unique()
+    # if len(unique_flights_to_show) > max_flights_to_show:
+    #     selected_flight_subset = np.random.choice(unique_flights_to_show, size=max_flights_to_show, replace=False)
+    #     df_to_visualize = df_filtered[df_filtered['FlightNumber'].isin(selected_flight_subset)].copy()
+    # else:
+    #     df_to_visualize = df_filtered.copy()
 
     # Check of "Alle vluchten" is geselecteerd
     if "Alle vluchten" not in selected_flights:
         df = df[df['FlightNumber'].isin(selected_flights)]
 
-    st.write(f"Toont data van {len(df_to_visualize['FlightNumber'].unique())} vluchten.")
+    # st.write(f"Toont data van {len(df_to_visualize['FlightNumber'].unique())} vluchten.")
     
     route_layers = []
     for flight_number, flight_df in df_to_visualize.groupby('FlightNumber'):
@@ -321,10 +321,10 @@ elif page == "🔊 pagina 3":
                     data=[{
                         "path": route_coordinates,
                         "FlightNumber": flight_number,
-                        "Course": df_to_visualize['Course'].iloc[0],
-                        "Speed": df_to_visualize['Speed_kph'].iloc[0],
-                        "Height": df_to_visualize['Altitude_meters'].iloc[0],
-                        "Datetime": df_to_visualize['Time'].iloc[0]
+                        "Course": flight_df['Course'].iloc[0],
+                        "Speed": flight_df['Speed_kph'].iloc[0],
+                        "Height": flight_df['Altitude_meters'].iloc[0],
+                        "Datetime": flight_df['Time'].iloc[0]
                     }],
                     get_path="path",
                     get_width=4,
