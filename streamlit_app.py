@@ -342,14 +342,7 @@ elif page == "🔊 pagina 3":
         get_radius='Noise_Level',
         get_fill_color="color",
         pickable=True,
-        tooltip={
-            "html": "<b>Vlucht ID:</b> {FlightNumber}<br/><b>Course:</b> {Course}<br/><b>Speed:</b> {Speed_kph} kph<br/><b>Height:</b> {Altitude_meters} m<br/><b>Time:</b> {Time}",
-            "style": {
-                "backgroundColor": "white",
-                "color": "black",
-                "z-index": "10000"
-            }
-        }
+        opacity=0.3
     )
 
     # Definieer de initiële weergave van de kaart
