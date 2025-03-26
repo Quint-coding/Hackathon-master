@@ -93,28 +93,31 @@ elif page == "🔊 Geoplot geluidoverlast":
 
         # Kleur bepalen op basis van Noise_Level
         def get_noise_color(noise_level):
-            """Geeft een lichtere kleur op basis van de geluidssterkte met een vloeiende overgang"""
+            """Gives a smooth color transition from red (high noise) → orange → green (low noise)"""
+            
             if noise_level < 60:
-                # Lager dan 60 dB: lichtgroen
-                return [144, 238, 144, 120]  # LightGreen
+                # Below 60 dB: Light Green
+                return [50, 205, 50, 150]  # LimeGreen (softer than LightGreen)
+            
             elif noise_level < 75:
-                # Tussen 60 en 75 dB: overgang van lichtgroen naar lichtoranje
-                factor = (noise_level - 60) / (75 - 60)  # 0 tot 1
-                rood = int(255 * factor + 144 * (1 - factor))
-                groen = int(165 * factor + 238 * (1 - factor))
-                blauw = 0
-                return [rood, groen, blauw, 160]
+                # 60 - 75 dB: Smooth transition from green to orange
+                factor = (noise_level - 60) / (75 - 60)  # 0 to 1
+                red = int(255 * factor + 50 * (1 - factor))  # 50 (green) → 255 (orange)
+                green = int(165 * factor + 205 * (1 - factor))  # 205 (green) → 165 (orange)
+                blue = 0  # No blue for a clean transition
+                return [red, green, blue, 180]
+            
             elif noise_level < 90:
-                # Tussen 75 en 90 dB: overgang van lichtoranje naar lichtrood
-                factor = (noise_level - 75) / (90 - 75)  # 0 tot 1
-                rood = int(255)
-                groen = int(80 * (1 - factor))
-                blauw = int(100 * factor) # Voeg een beetje blauw toe om "modderig" rood te voorkomen
-                return [rood, groen, blauw, 200]
+                # 75 - 90 dB: Transition from orange to red
+                factor = (noise_level - 75) / (90 - 75)  # 0 to 1
+                red = 255  # Always full red
+                green = int(165 * (1 - factor) + 50 * factor)  # 165 (orange) → 50 (deep red)
+                blue = 0  # Keep pure warm colors
+                return [red, green, blue, 200]
+            
             else:
-                # Hoger dan 90 dB: lichtrood
-                return [255, 99, 71, 200]  # Tomato
-
+                # Above 90 dB: Deep Red
+                return [255, 50, 50, 220]  # Strong red (softened with a slight reduction in blue)
 
         df['color'] = df['Noise_Level'].apply(get_noise_color)
 
