@@ -109,7 +109,7 @@ elif page == "🔊 Geoplot geluidoverlast":
                 factor = (noise_level - 75) / (90 - 75)  # 0 tot 1
                 rood = int(255)
                 groen = int(80 * (1 - factor))
-                blauw = int(50 * factor) # Voeg een beetje blauw toe om "modderig" rood te voorkomen
+                blauw = int(100 * factor) # Voeg een beetje blauw toe om "modderig" rood te voorkomen
                 return [rood, groen, blauw, 200]
             else:
                 # Hoger dan 90 dB: lichtrood
