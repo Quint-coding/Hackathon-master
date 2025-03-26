@@ -87,9 +87,9 @@ elif page == "🔊 Geoplot geluidoverlast":
         # Filter rijen met ontbrekende waarden
         df = df.dropna(subset=['Latitude', 'Longitude', 'FlightType', 'FlightNumber', 'Course', 'Speed_kph', 'Altitude_meters', 'Time'])
 
-        # Simuleer tijdelijke geluidsdata (Noise_Level)
-        np.random.seed(42)
-        df['Noise_Level'] = np.random.randint(50, 100, size=len(df))
+        # # Simuleer tijdelijke geluidsdata (Noise_Level)
+        # np.random.seed(42)
+        # df['Noise_Level'] = np.random.randint(50, 100, size=len(df))
 
         # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
         vlucht_types = df['FlightType'].unique().tolist()
