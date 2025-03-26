@@ -64,7 +64,6 @@ elif page == "🔊 Geoplot geluidoverlast":
     st.subheader("Schiphol Geo visualisatie van het geluidsoverlast van diverse vluchten")
 
     st.write("""Hieronder kunt u de keuze maken naar het type vlucht en eventueel verder specificeren naar exacte vluchten.
-             
              Het Transfer of Control principe zorgt voor de korte vlucht paden van vertrekkende vluchten.""")
 
     @st.cache_data
