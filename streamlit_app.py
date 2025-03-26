@@ -78,7 +78,7 @@ elif page == "🔊 Geoplot geluidoverlast":
 
     @st.cache_data
     def load_and_process_data():
-        df = pd.read_csv('timestamp vlucht data.csv')
+        df = pd.read_csv('timestamp vlucht df.csv')
         
         # Converteer kolommen naar numerieke waarden
         df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
@@ -232,7 +232,7 @@ elif page == "🔊 pagina 3":
 
     @st.cache_data
     def load_and_process_data():
-        df = pd.read_csv('timestamp vlucht data.csv')
+        df = pd.read_csv('timestamp vlucht df.csv')
 
         # Converteer kolommen naar numerieke waarden
         df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
