@@ -299,10 +299,10 @@ elif page == "🔊 pagina 3":
                     data=[{
                         "path": route_coordinates,
                         "FlightNumber": flight_number,
-                        "Course": flight_df['Course'].iloc[0],
-                        "Speed": flight_df['Speed_kph'].iloc[0],
-                        "Height": flight_df['Altitude_meters'].iloc[0],
-                        "Datetime": flight_df['Time'].iloc[0]
+                        "Course": df_to_visualize['Course'].iloc[0],
+                        "Speed": df_to_visualize['Speed_kph'].iloc[0],
+                        "Height": df_to_visualize['Altitude_meters'].iloc[0],
+                        "Datetime": df_to_visualize['Time'].iloc[0]
                     }],
                     get_path="path",
                     get_width=4,
@@ -315,7 +315,7 @@ elif page == "🔊 pagina 3":
     # Geluidsimpact toevoegen als cirkels rond elke locatie (gebaseerd op df_to_visualize)
     radius_layer = pdk.Layer(
         "ScatterplotLayer",
-        data=df_full,
+        data=df_to_visualize,
         get_position=["Longitude", "Latitude"],
         get_radius='Noise_Level',
         get_fill_color="color",
