@@ -313,6 +313,19 @@ elif page == "🔊 pagina 3":
                 )
             )
 
+    df_to_visualize['Noise_Level_expanded'] = df_to_visualize['Noise_Level'] * df_to_visualize['Noise_Level']
+
+    # Geluidsimpact toevoegen als cirkels rond elke locatie (gebaseerd op df_to_visualize)
+    radius_layer = pdk.Layer(
+        "ScatterplotLayer",
+        data=df_to_visualize,
+        get_position=["Longitude", "Latitude"],
+        get_radius='Noise_Level_expanded',
+        get_fill_color="color",
+        pickable=True,
+        opacity=0.3
+    )
+
     # Define initial view
     initial_view_state = pdk.ViewState(
         latitude=52.308056,
@@ -336,19 +349,6 @@ elif page == "🔊 pagina 3":
             "z-index": "10000"
         }
     }
-
-    df_to_visualize['Noise_Level_expanded'] = df_to_visualize['Noise_Level'] * 10
-
-    # Geluidsimpact toevoegen als cirkels rond elke locatie (gebaseerd op df_to_visualize)
-    radius_layer = pdk.Layer(
-        "ScatterplotLayer",
-        data=df_to_visualize,
-        get_position=["Longitude", "Latitude"],
-        get_radius='Noise_Level_expanded',
-        get_fill_color="color",
-        pickable=True,
-        opacity=0.3
-    )
 
     # Create Pydeck Deck
     deck = pdk.Deck(
