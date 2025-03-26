@@ -141,7 +141,7 @@ elif page == "🔊 Geoplot geluidoverlast":
         df = df[df['FlightNumber'].isin(selected_flights)]
     
     route_layers = []
-    for flight_number, flight_df in df_to_visualize.groupby('FlightNumber'):
+    for flight_number, flight_df in df.groupby('FlightNumber'):
         route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
     
         if len(route_coordinates) > 1:
