@@ -68,9 +68,7 @@ elif page == "🔊 Theoretische context":
 
     st.write("""Gebruik is gemaakt van de inverse square law om per vliegtuig model een coëfficient te berekenen dat weergeeft hoe luid een vligtuig direct onder zich is.""")
 
-    df = pd.read_csv('timestamp vlucht data.csv')
 
-    st.write(df)
 
 elif page == "🔊 Geoplot geluidoverlast":
     st.title("Geoplot geluidoverlast")
