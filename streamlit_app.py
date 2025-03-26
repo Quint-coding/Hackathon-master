@@ -309,6 +309,8 @@ elif page == "🔊 pagina 3":
 
     st.write(f"Toont data van {len(df_to_visualize['FlightNumber'].unique())} vluchten.")
 
+    st.write(df_to_visualize)
+
     route_layers = []
     for flight_number, flight_df in df_to_visualize.groupby('FlightNumber'):
         route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
