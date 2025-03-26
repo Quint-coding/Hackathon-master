@@ -143,7 +143,7 @@ elif page == "🔊 Geoplot geluidoverlast":
                 pdk.Layer(
                     "PathLayer",
                     # data=[{"path": route_coordinates, "FlightNumber": flight_number}],  # FlightNumber toegevoegd
-                    data=[{"path": route_coordinates, "FlightNumber": flight_number, "Course": flight_df['Course'].iloc[0], "Speed": flight_df['Speed_mph'].iloc[0]}],
+                    data=[{"path": route_coordinates, "FlightNumber": flight_number, "Course": flight_df['Course'].iloc[0], "Speed": flight_df['Speed_kph'].iloc[0], "Height": flight_df['Altitude_meters'].iloc[0]}],
                     get_path="path",
                     get_width=4,
                     get_color=[100, 100, 255],
@@ -179,7 +179,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     initial_view_state=initial_view_state,
     map_style="mapbox://styles/mapbox/streets-v11",
     tooltip={
-        "html": "<b>Vlucht ID:</b> {FlightNumber}<br/><b>Course:</b> {Course}<br/><b>Speed (mph):</b> {Speed_mph}",
+        "html": "<b>Vlucht ID:</b> {FlightNumber}<br/><b>Course:</b> {Course}<br/><b>Speed (kph):</b> {Speed_kph}<br/><b>Height (m):</b> {Altitude_meters}",
         "style": {
             "backgroundColor": "white",
             "color": "black",
