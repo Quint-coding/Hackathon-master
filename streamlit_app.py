@@ -93,13 +93,26 @@ elif page == "🔊 Geoplot geluidoverlast":
 
         # Kleur bepalen op basis van Noise_Level
         def get_noise_color(noise_level):
-            """Geeft een kleur op basis van de geluidssterkte"""
-            if noise_level < 65:
-                return [0, 255, 0, 100]  # Groen (rustig)
-            elif noise_level < 80:
-                return [255, 165, 0, 150]  # Oranje (middelmatig geluid)
+            """Geeft een kleur op basis van de geluidssterkte met een vloeiende overgang"""
+            if noise_level < 60:
+                # Lager dan 60 dB: volledig groen
+                return [0, 255, 0, 100]
+            elif noise_level < 75:
+                # Tussen 60 en 75 dB: overgang van groen naar oranje
+                factor = (noise_level - 60) / (75 - 60)  # 0 tot 1
+                rood = int(255 * factor)
+                groen = int(255 * (1 - factor))
+                return [rood, groen, 0, 150]  # Meer zichtbaar door hogere alpha
+            elif noise_level < 90:
+                # Tussen 75 en 90 dB: overgang van oranje naar rood
+                factor = (noise_level - 75) / (90 - 75)  # 0 tot 1
+                rood = int(255)
+                groen = int(165 * (1 - factor))
+                return [rood, groen, 0, 200]  # Nog meer zichtbaar
             else:
-                return [255, 0, 0, 200]  # Rood (luid)
+                # Hoger dan 90 dB: volledig rood
+                return [255, 0, 0, 200]
+
 
         df['color'] = df['Noise_Level'].apply(get_noise_color)
 
