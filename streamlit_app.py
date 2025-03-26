@@ -49,7 +49,7 @@ if page == "🔊 Home":
     De kaagbaan en polderbaan hebben respectievelijk voorkeur voor aankomende en vertrekkende vluchten, dit omdat deze banen voor minder overlast zorgen. 
     Het wil nog wel eens voorkomen dat er voor andere banen gekozen wordt wegens de veiligheid, het zicht, de wind- en weersomstandigheden, de milieuregels en de beschikbaarheid van de banen.
 
-    Ideen voor meer aanvullling:
+    Ideen voor meer aanvulling aan de opdracht:
     Aanpassen van vlieggtuig type.
     meer data inwinnen over de vliegtuigen en welke het beste is om geluidsoverlast te minderen.
     Geluidcoefficient aanpasbaar maken
@@ -165,7 +165,7 @@ elif page == "🔊 Geoplot geluidoverlast":
         get_radius='Noise_Level',
         get_fill_color="color",
         pickable=True,
-        opacity=0.3
+        opacity=0.3,
     )
     
     # Definieer de initiële weergave van de kaart
@@ -181,7 +181,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     layers= route_layers + [radius_layer],
     initial_view_state=initial_view_state,
     map_style="mapbox://styles/mapbox/streets-v11",
-        tooltip={
+    tooltip={
         "html": "<b>Vlucht ID:</b> {FlightNumber}<br/><b>Course:</b> {Course}<br/><b>Speed:</b> {Speed_kph} kph<br/><b>Height:</b> {Altitude_meters} m<br/><b>Time:</b> {Time}",
         "style": {
             "backgroundColor": "white",
