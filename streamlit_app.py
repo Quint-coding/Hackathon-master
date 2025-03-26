@@ -177,7 +177,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     initial_view_state=initial_view_state,
     map_style="mapbox://styles/mapbox/streets-v11",
     tooltip={
-        "html": "<b>Vlucht ID:</b> {FlightNumber}<br/><b>Course:</b> {Course}<br/><b>Speed (kph):</b> {Speed_kph}<br/><b>Height (m):</b> {Altitude_meters}",
+        "html": "<b>Vlucht ID:</b> {FlightNumber}<br/><b>Course:</b> {Course}<br/><b>Speed:</b> {Speed_kph} kph<br/><b>Height:</b> {Altitude_meters} m",
         "style": {
             "backgroundColor": "white",
             "color": "black",
