@@ -209,8 +209,6 @@ elif page == "🔊 pagina 3":
 
     st.write("""bonjour""")
 
-
-
     @st.cache_data
     def load_and_process_data():
         df = pd.read_csv('timestamp vlucht df.csv')
@@ -317,7 +315,7 @@ elif page == "🔊 pagina 3":
     # Geluidsimpact toevoegen als cirkels rond elke locatie (gebaseerd op df_to_visualize)
     radius_layer = pdk.Layer(
         "ScatterplotLayer",
-        data=df_to_visualize,
+        data=df_full,
         get_position=["Longitude", "Latitude"],
         get_radius='Noise_Level',
         get_fill_color="color",
