@@ -43,14 +43,17 @@ if page == "🔊 Home":
     st.subheader("Welkom bij ons schiphol dashboard over geluid overlast")
 
     st.write("""
-    Dit dashboard geeft inzicht in de overlast veroorzaakt door vliegtuigen van en naar schiphol.
+    Dit dashboard geeft inzicht in de theoretische geluids overlast veroorzaakt door vliegtuigen van en naar schiphol.
     Gebruik de navigatie aan de linkerzijde om naar de visualisaties te gaan.
     
-    
     De kaagbaan en polderbaan hebben respectievelijk voorkeur voor aankomende en vertrekkende vluchten, dit omdat deze banen voor minder overlast zorgen. 
-        Het wil nog wel eens voorkomen dat er voor andere banen gekozen wordt wegens de veiligheid, het zicht, de wind- en weersomstandigheden, de milieuregels en de beschikbaarheid van de banen.
+    Het wil nog wel eens voorkomen dat er voor andere banen gekozen wordt wegens de veiligheid, het zicht, de wind- en weersomstandigheden, de milieuregels en de beschikbaarheid van de banen.
 
-    op basis van data over het weer en omwonende bepalen hoe de landingsbanen anders ingericht kunnen worden.
+    Ideen voor meer aanvullling:
+    Aanpassen van vlieggtuig type.
+    meer data inwinnen over de vliegtuigen en welke het beste is om geluidsoverlast te minderen.
+    Geluidcoefficient aanpasbaar maken
+    Meer context krijgen bij de situatie
              
     Team 8:
     - Tammo van Leeuwen, 
@@ -64,7 +67,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     st.subheader("Schiphol Geo visualisatie van het geluidsoverlast van diverse vluchten")
 
     st.write("""Hieronder kunt u de keuze maken naar het type vlucht en eventueel verder specificeren naar exacte vluchten.
-             Het Transfer of Control principe zorgt voor de korte vlucht paden van vertrekkende vluchten.""")
+             Het Transfer of Control principe zorgt voor de korte vlucht paden van vertrekkende vluchten. De VFR kaarten hiervoor zijn niet beschikbaar.""")
 
     @st.cache_data
     def load_and_process_data():
@@ -163,6 +166,14 @@ elif page == "🔊 Geoplot geluidoverlast":
         get_fill_color="color",
         pickable=True,
         opacity=0.3,
+        tooltip={
+            "html": "<b>Vlucht ID:</b> {FlightNumber}<br/><b>Course:</b> {Course}<br/><b>Speed:</b> {Speed_kph} kph<br/><b>Height:</b> {Altitude_meters} m<br/><b>Time:</b> {Time}",
+            "style": {
+                "backgroundColor": "white",
+                "color": "black",
+                "z-index": "10000"
+            }
+        }
     )
     
     # Definieer de initiële weergave van de kaart
@@ -178,14 +189,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     layers= route_layers + [radius_layer],
     initial_view_state=initial_view_state,
     map_style="mapbox://styles/mapbox/streets-v11",
-    tooltip={
-        "html": "<b>Vlucht ID:</b> {[FlightNumber]}<br/><b>Course:</b> {[Course]}<br/><b>Speed:</b> {[Speed_kph]} kph<br/><b>Height:</b> {[Altitude_meters]} m<br/><b>Time:</b> {[Time]}",
-        "style": {
-            "backgroundColor": "white",
-            "color": "black",
-            "z-index": "10000"
-        }
-    }
+
 )
 
     # Toon de kaart in Streamlit
