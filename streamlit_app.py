@@ -228,3 +228,143 @@ elif page == "🔊 pagina 3":
     st.subheader("Welkom bij ons schiphol dashboard over geluid overlast")
 
     st.write("""bonjour""")
+
+    @st.cache_data
+    def load_and_process_data():
+        df = pd.read_csv('timestamp vlucht data.csv')
+
+        # Converteer kolommen naar numerieke waarden
+        df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
+        df['Longitude'] = pd.to_numeric(df['Longitude'], errors='coerce')
+
+        # Filter rijen met ontbrekende waarden
+        df = df.dropna(subset=['Latitude', 'Longitude', 'FlightType', 'FlightNumber'])
+
+        # Simuleer tijdelijke geluidsdata (Noise_Level)
+        np.random.seed(42)
+        df['Noise_Level'] = np.random.randint(50, 100, size=len(df))
+
+        # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
+        vlucht_types = df['FlightType'].unique().tolist()
+        vlucht_types.sort()
+
+        # Kleur bepalen op basis van Noise_Level
+        def get_noise_color(noise_level):
+            """Geeft een kleur op basis van de geluidssterkte"""
+            if noise_level < 65:
+                return [0, 255, 0, 100]  # Groen (rustig)
+            elif noise_level < 80:
+                return [255, 165, 0, 150]  # Oranje (middelmatig geluid)
+            else:
+                return [255, 0, 0, 200]  # Rood (luid)
+
+        df['color'] = df['Noise_Level'].apply(get_noise_color)
+
+        # Unieke vluchten ophalen
+        vluchten = df['FlightNumber'].unique().tolist()
+        vluchten.sort()
+
+        return df, vlucht_types, vluchten
+
+    # Laad de data en vluchtsoorten met behulp van de gecachte functie
+    df_full, vlucht_types, vluchten = load_and_process_data()
+
+    # Streamlit interface - Keuze tussen Aankomst of Vertrek
+    selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
+
+    # Filter de dataset op basis van vluchtsoort
+    df_filtered_by_type = df_full[df_full['FlightType'] == selected_type].copy()
+
+    # Haal de vluchten binnen de geselecteerde vluchtsoort op
+    vluchten_binnen_type = df_filtered_by_type['FlightNumber'].unique().tolist()
+    vluchten_binnen_type.sort()
+
+    # Streamlit multiselect met de aangepaste lijst
+    vluchten_met_type = ["Alle vluchten"] + vluchten_binnen_type
+    selected_flights = st.multiselect("Selecteer vlucht(en):", vluchten_met_type, default=["Alle vluchten"])
+
+    # Filter op geselecteerde vluchten
+    if "Alle vluchten" not in selected_flights:
+        df_filtered = df_filtered_by_type[df_filtered_by_type['FlightNumber'].isin(selected_flights)].copy()
+    else:
+        df_filtered = df_filtered_by_type.copy()
+
+    # Streamlit slider om het aantal getoonde vluchten te selecteren
+    num_available_flights = len(df_filtered['FlightNumber'].unique())
+    max_flights_to_show = st.slider(
+        "Aantal vluchten om te tonen:",
+        min_value=5,
+        max_value=num_available_flights if num_available_flights > 0 else 5,
+        value=min(20, num_available_flights) if num_available_flights > 0 else 20,
+        step=5
+    )
+
+    # Haal een gesamplede subset van de DataFrame op basis van het aantal geselecteerde vluchten
+    unique_flights_to_show = df_filtered['FlightNumber'].unique()
+    if len(unique_flights_to_show) > max_flights_to_show:
+        selected_flight_subset = np.random.choice(unique_flights_to_show, size=max_flights_to_show, replace=False)
+        df_to_visualize = df_filtered[df_filtered['FlightNumber'].isin(selected_flight_subset)].copy()
+    else:
+        df_to_visualize = df_filtered.copy()
+
+    st.write(f"Toont data van {len(df_to_visualize['FlightNumber'].unique())} vluchten.")
+
+    route_layers = []
+    for flight_number, flight_df in df_to_visualize.groupby('FlightNumber'):
+        route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
+
+        if len(route_coordinates) > 1:
+            route_layers.append(
+                pdk.Layer(
+                    "PathLayer",
+                    data=[{
+                        "path": route_coordinates,
+                        "FlightNumber": flight_number,
+                        "Course": flight_df['Course'].iloc[0],
+                        "Speed": flight_df['Speed_kph'].iloc[0],
+                        "Height": flight_df['Altitude_meters'].iloc[0],
+                        "Datetime": flight_df['Time'].iloc[0]
+                    }],
+                    get_path="path",
+                    get_width=4,
+                    get_color=[100, 100, 255],
+                    width_min_pixels=2,
+                    pickable=True,
+                )
+            )
+
+    # Geluidsimpact toevoegen als cirkels rond elke locatie (ook gebaseerd op df_to_visualize)
+    radius_layer = pdk.Layer(
+        "ScatterplotLayer",
+        data=df_to_visualize,
+        get_position=["Longitude", "Latitude"],
+        get_radius='Noise_Level',
+        get_fill_color="color",
+        pickable=True,
+        opacity=0.3,
+        tooltip={
+            "html": "<b>Vlucht ID:</b> {FlightNumber}<br/><b>Course:</b> {Course}<br/><b>Speed:</b> {Speed_kph} kph<br/><b>Height:</b> {Altitude_meters} m<br/><b>Time:</b> {Time}",
+            "style": {
+                "backgroundColor": "white",
+                "color": "black",
+                "z-index": "10000"
+            }
+        }
+    )
+
+    # Definieer de initiële weergave van de kaart
+    initial_view_state = pdk.ViewState(
+        latitude=52.308056,
+        longitude=4.764167,
+        zoom=8
+    )
+
+    # Maak een pydeck Deck (kaart)
+    deck = pdk.Deck(
+        layers= route_layers + [radius_layer],
+        initial_view_state=initial_view_state,
+        map_style="mapbox://styles/mapbox/streets-v11"
+    )
+
+    # Toon de kaart in Streamlit
+    st.pydeck_chart(deck)
