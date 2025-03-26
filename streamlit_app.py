@@ -151,8 +151,6 @@ elif page == "🔊 Geoplot geluidoverlast":
 
     st.write(f"Toont data van {len(df_to_visualize['FlightNumber'].unique())} vluchten.")
 
-    st.write(df_full)
-
     # Create Pydeck Layers
     route_layers = []
     for flight_number, flight_df in df_to_visualize.groupby('FlightNumber'):
