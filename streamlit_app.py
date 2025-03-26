@@ -63,7 +63,9 @@ elif page == "🔊 Geoplot geluidoverlast":
     st.title("Geoplot geluidoverlast")
     st.subheader("Schiphol Geo visualisatie van het geluidsoverlast van diverse vluchten")
 
-    st.write("""Kies hieronder de type vlucht en welke vluchten geanalyseerd worden voor hun overlast""")
+    st.write("""Hieronder kunt u de keuze maken naar het type vlucht en eventueel verder specificeren naar exacte vluchten.<br/>
+             
+             Het Transfer of Control principe zorgt voor de korte vlucht paden van vertrekkende vluchten.""")
 
     @st.cache_data
     def load_and_process_data():
@@ -106,7 +108,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     df, vlucht_types, vluchten = load_and_process_data()
 
     # Streamlit interface - Keuze tussen Aankomst of Vertrek
-    selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
+    selected_type = st.radio("<b>Selecteer type vlucht:<b>", vlucht_types)
 
 
     # Filter de dataset op basis van vluchtsoort
@@ -119,7 +121,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     vluchten_met_type = ["Alle vluchten", selected_type] + vluchten_binnen_type
 
     # Streamlit multiselect met de aangepaste lijst
-    selected_flights = st.multiselect("Selecteer vlucht(en):", vluchten_met_type, default=["Alle vluchten"])
+    selected_flights = st.multiselect("<b>Selecteer vlucht(en):<b>", vluchten_met_type, default=["Alle vluchten"])
     
 
     # Check of "Alle vluchten" is geselecteerd
