@@ -158,6 +158,8 @@ elif page == "🔊 Geoplot geluidoverlast":
                 )
             )
     
+    st.write(flight_df)
+
     df['Noise_Level'] = df['Noise_Level'] * 5
     
     # Geluidsimpact toevoegen als cirkels rond elke locatie
