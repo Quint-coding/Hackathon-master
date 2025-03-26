@@ -307,7 +307,7 @@ elif page == "🔊 pagina 3":
                     }],
                     get_path="path",
                     get_width=4,
-                    get_color=color_map[flight_number],
+                    get_color=[100, 100, 255],
                     width_min_pixels=2,
                     pickable=True,
                 )
