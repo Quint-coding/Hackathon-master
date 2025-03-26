@@ -313,6 +313,8 @@ elif page == "🔊 pagina 3":
                 )
             )
 
+    df_to_visualize['Noise_Level'] = df_to_visualize['Noise_Level'] * 10
+
     # Geluidsimpact toevoegen als cirkels rond elke locatie (gebaseerd op df_to_visualize)
     radius_layer = pdk.Layer(
         "ScatterplotLayer",
@@ -338,7 +340,8 @@ elif page == "🔊 pagina 3":
             <b>Course:</b> {Course}<br/>
             <b>Speed:</b> {Speed_kph} kph<br/>
             <b>Height:</b> {Altitude_meters} m<br/>
-            <b>Time:</b> {Time}
+            <b>Time:</b> {Time}<br/>
+            <b>Noise level:</b> {Noise_Level}
         """,
         "style": {
             "backgroundColor": "white",
@@ -355,6 +358,5 @@ elif page == "🔊 pagina 3":
         tooltip=tooltip
     )
 
-    st.write(df_to_visualize)
     # Toon de kaart in Streamlit
     st.pydeck_chart(deck)
