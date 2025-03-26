@@ -288,6 +288,7 @@ elif page == "🔊 pagina 3":
 
     st.write(f"Toont data van {len(df_to_visualize['FlightNumber'].unique())} vluchten.")
 
+    # Create Pydeck Layers
     route_layers = []
     for flight_number, flight_df in df_to_visualize.groupby('FlightNumber'):
         route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
@@ -299,14 +300,14 @@ elif page == "🔊 pagina 3":
                     data=[{
                         "path": route_coordinates,
                         "FlightNumber": flight_number,
-                        "Course": df_to_visualize['Course'].iloc[0],
-                        "Speed": df_to_visualize['Speed_kph'].iloc[0],
-                        "Height": df_to_visualize['Altitude_meters'].iloc[0],
-                        "Datetime": df_to_visualize['Time'].iloc[0]
+                        "Course": flight_df['Course'].iloc[0],
+                        "Speed_kph": flight_df['Speed_kph'].iloc[0],
+                        "Altitude_meters": flight_df['Altitude_meters'].iloc[0],
+                        "Time": flight_df['Time'].iloc[0]
                     }],
                     get_path="path",
                     get_width=4,
-                    get_color=[100, 100, 255],
+                    get_color=color_map[flight_number],
                     width_min_pixels=2,
                     pickable=True,
                 )
@@ -323,27 +324,37 @@ elif page == "🔊 pagina 3":
         opacity=0.3
     )
 
-    # Definieer de initiële weergave van de kaart
+    # Define initial view
     initial_view_state = pdk.ViewState(
         latitude=52.308056,
         longitude=4.764167,
         zoom=8
     )
 
-    # Maak een pydeck Deck (kaart)
+    # Fix tooltip formatting
+    tooltip = {
+        "html": """
+            <b>Flight ID:</b> {FlightNumber}<br/>
+            <b>Course:</b> {Course}<br/>
+            <b>Speed:</b> {Speed_kph} kph<br/>
+            <b>Height:</b> {Altitude_meters} m<br/>
+            <b>Time:</b> {Time}
+        """,
+        "style": {
+            "backgroundColor": "white",
+            "color": "black",
+            "z-index": "10000"
+        }
+    }
+
+    # Create Pydeck Deck
     deck = pdk.Deck(
-        layers= route_layers + [radius_layer],
+        layers=route_layers + [radius_layer],
         initial_view_state=initial_view_state,
         map_style="mapbox://styles/mapbox/streets-v11",
-        tooltip={
-            "html": "<b>Vlucht ID:</b> {[FlightNumber]}<br/><b>Course:</b> {[Course]}<br/><b>Speed:</b> {[Speed_kph]} kph<br/><b>Height:</b> {[Altitude_meters]} m<br/><b>Time:</b> {[Time]}",
-            "style": {
-                "backgroundColor": "white",
-                "color": "black",
-                "z-index": "10000"
-            }
-        }
+        tooltip=tooltip
     )
+
     st.write(df_to_visualize)
     # Toon de kaart in Streamlit
     st.pydeck_chart(deck)
