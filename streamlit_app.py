@@ -321,10 +321,10 @@ elif page == "🔊 pagina 3":
                     data=[{
                         "path": route_coordinates,
                         "FlightNumber": flight_number,
-                        "Course": flight_df['Course'].iloc[0],
-                        "Speed": flight_df['Speed_kph'].iloc[0],
-                        "Height": flight_df['Altitude_meters'].iloc[0],
-                        "Datetime": flight_df['Time'].iloc[0]
+                        "Course": df_to_visualize['Course'].iloc[0],
+                        "Speed": df_to_visualize['Speed_kph'].iloc[0],
+                        "Height": df_to_visualize['Altitude_meters'].iloc[0],
+                        "Datetime": df_to_visualize['Time'].iloc[0]
                     }],
                     get_path="path",
                     get_width=4,
