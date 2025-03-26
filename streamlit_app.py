@@ -313,7 +313,7 @@ elif page == "🔊 pagina 3":
                 )
             )
 
-    df_to_visualize['Noise_Level_expanded'] = (df_to_visualize['Noise_Level'] * df_to_visualize['Noise_Level']) / 10
+    df_to_visualize['Noise_Level_expanded'] = (df_to_visualize['Noise_Level'] * df_to_visualize['Noise_Level']) / 5
 
     # Geluidsimpact toevoegen als cirkels rond elke locatie (gebaseerd op df_to_visualize)
     radius_layer = pdk.Layer(
