@@ -125,7 +125,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     vluchten_binnen_type = df['FlightNumber'].unique().tolist()
 
     # Voeg de geselecteerde vluchtsoort toe aan de lijst met vluchten
-    vluchten_met_type = ["Alle vluchten"] + vluchten_binnen_type
+    vluchten_met_type = ["Alle vluchten", selected_type] + vluchten_binnen_type
 
     # Streamlit multiselect met de aangepaste lijst
     selected_flights = st.multiselect("Selecteer vlucht(en):", vluchten_met_type, default=["Alle vluchten"])
