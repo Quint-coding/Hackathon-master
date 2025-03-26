@@ -150,7 +150,7 @@ elif page == "🔊 Geoplot geluidoverlast":
                 )
             )
 
-    df['Noise_Level'] = df['Noise_Level'] * 20
+    df['Noise_Level'] = df['Noise_Level'] * 10
     
     # Geluidsimpact toevoegen als cirkels rond elke locatie
     radius_layer = pdk.Layer(
