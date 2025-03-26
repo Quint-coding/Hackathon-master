@@ -139,8 +139,8 @@ elif page == "🔊 Geoplot geluidoverlast":
                         "path": route_coordinates, 
                         "FlightNumber": flight_number, 
                         "Course": flight_df['Course'].iloc[0], 
-                        # "Speed": flight_df['Speed_kph'].iloc[0], 
-                        # "Height": flight_df['Altitude_meters'].iloc[0]
+                        "Speed": flight_df['Speed_kph'].iloc[0], 
+                        "Height": flight_df['Altitude_meters'].iloc[0]
                         }],
                     get_path="path",
                     get_width=4,
@@ -149,8 +149,6 @@ elif page == "🔊 Geoplot geluidoverlast":
                     pickable=True, # pickable toegevoegd.
                 )
             )
-    
-    st.write(df)
 
     df['Noise_Level'] = df['Noise_Level'] * 5
     
@@ -179,7 +177,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     initial_view_state=initial_view_state,
     map_style="mapbox://styles/mapbox/streets-v11",
     tooltip={
-        "html": "<b>Vlucht ID:</b> {FlightNumber}<br/><b>Course:</b> {Course}",
+        "html": "<b>Vlucht ID:</b> {FlightNumber}<br/><b>Course:</b> {Course}<br/><b>Speed (kph):</b> {Speed_kph}<br/><b>Height (m):</b> {Altitude_meters}",
         "style": {
             "backgroundColor": "white",
             "color": "black",
