@@ -346,6 +346,6 @@ elif page == "🔊 pagina 3":
             }
         }
     )
-
+    st.write(df_to_visualize)
     # Toon de kaart in Streamlit
     st.pydeck_chart(deck)
