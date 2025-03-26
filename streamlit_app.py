@@ -161,7 +161,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     st.write(f"Toont data van {len(df_to_visualize['FlightNumber'].unique())} vluchten.")
     
     route_layers = []
-    for flight_number, flight_df in df.groupby('FlightNumber'):
+    for flight_number, flight_df in df_to_visualize.groupby('FlightNumber'):
         route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
     
         if len(route_coordinates) > 1:
@@ -230,9 +230,10 @@ elif page == "🔊 pagina 3":
     st.write("""bonjour""")
 
 
+
     @st.cache_data
     def load_and_process_data():
-        df = pd.read_csv('timestamp vlucht df.csv')
+        df = pd.read_csv('timestamp vlucht data.csv')
 
         # Converteer kolommen naar numerieke waarden
         df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
@@ -309,8 +310,6 @@ elif page == "🔊 pagina 3":
 
     st.write(f"Toont data van {len(df_to_visualize['FlightNumber'].unique())} vluchten.")
 
-    st.write(df_to_visualize)
-
     route_layers = []
     for flight_number, flight_df in df_to_visualize.groupby('FlightNumber'):
         route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
@@ -335,8 +334,6 @@ elif page == "🔊 pagina 3":
                 )
             )
 
-    df_to_visualize['Noise_Level'] = df_to_visualize['Noise_Level'] * 10
-
     # Geluidsimpact toevoegen als cirkels rond elke locatie (gebaseerd op df_to_visualize)
     radius_layer = pdk.Layer(
         "ScatterplotLayer",
@@ -345,7 +342,6 @@ elif page == "🔊 pagina 3":
         get_radius='Noise_Level',
         get_fill_color="color",
         pickable=True,
-        opacity=0.3,
         tooltip={
             "html": "<b>Vlucht ID:</b> {FlightNumber}<br/><b>Course:</b> {Course}<br/><b>Speed:</b> {Speed_kph} kph<br/><b>Height:</b> {Altitude_meters} m<br/><b>Time:</b> {Time}",
             "style": {
@@ -367,7 +363,15 @@ elif page == "🔊 pagina 3":
     deck = pdk.Deck(
         layers= route_layers + [radius_layer],
         initial_view_state=initial_view_state,
-        map_style="mapbox://styles/mapbox/streets-v11"
+        map_style="mapbox://styles/mapbox/streets-v11",
+        tooltip={
+            "html": "<b>Vlucht ID:</b> {[FlightNumber]}<br/><b>Course:</b> {[Course]}<br/><b>Speed:</b> {[Speed_kph]} kph<br/><b>Height:</b> {[Altitude_meters]} m<br/><b>Time:</b> {[Time]}",
+            "style": {
+                "backgroundColor": "white",
+                "color": "black",
+                "z-index": "10000"
+            }
+        }
     )
 
     # Toon de kaart in Streamlit
