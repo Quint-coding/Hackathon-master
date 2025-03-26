@@ -141,7 +141,7 @@ elif page == "🔊 Geoplot geluidoverlast":
                         "Course": flight_df['Course'].iloc[0], 
                         "Speed": flight_df['Speed_kph'].iloc[0], 
                         "Height": flight_df['Altitude_meters'].iloc[0],
-                        "Datetime": flight_df['datetime'].iloc[0]
+                        "Datetime": flight_df['Time'].iloc[0]
                         }],
                     get_path="path",
                     get_width=4,
@@ -178,7 +178,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     initial_view_state=initial_view_state,
     map_style="mapbox://styles/mapbox/streets-v11",
     tooltip={
-        "html": "<b>Vlucht ID:</b> {FlightNumber}<br/><b>Course:</b> {Course}<br/><b>Speed:</b> {Speed_kph} kph<br/><b>Height:</b> {Altitude_meters} m<br/><b>Time:</b> {datetime} m",
+        "html": "<b>Vlucht ID:</b> {FlightNumber}<br/><b>Course:</b> {Course}<br/><b>Speed:</b> {Speed_kph} kph<br/><b>Height:</b> {Altitude_meters} m<br/><b>Time:</b> {Time}",
         "style": {
             "backgroundColor": "white",
             "color": "black",
