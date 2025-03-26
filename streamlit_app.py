@@ -69,7 +69,6 @@ elif page == "🔊 Theoretische context":
     st.write("""Gebruik is gemaakt van de inverse square law om per vliegtuig model een coëfficient te berekenen dat weergeeft hoe luid een vligtuig direct onder zich is.""")
 
 
-
 elif page == "🔊 Geoplot geluidoverlast":
     st.title("Geoplot geluidoverlast")
     st.subheader("Schiphol Geo visualisatie van het geluidsoverlast van diverse vluchten")
@@ -91,7 +90,6 @@ elif page == "🔊 Geoplot geluidoverlast":
         # Simuleer tijdelijke geluidsdata (Noise_Level)
         np.random.seed(42)
         df['Noise_Level'] = np.random.randint(50, 100, size=len(df))
-        # df['Noise_Level'] = df['Noise_Level'] * 5
         
         # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
         vlucht_types = df['FlightType'].unique().tolist()
@@ -120,7 +118,6 @@ elif page == "🔊 Geoplot geluidoverlast":
     # Streamlit interface - Keuze tussen Aankomst of Vertrek
     selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
 
-
     # Filter de dataset op basis van vluchtsoort
     df = df[df['FlightType'] == selected_type]
 
@@ -128,7 +125,7 @@ elif page == "🔊 Geoplot geluidoverlast":
     vluchten_binnen_type = df['FlightNumber'].unique().tolist()
 
     # Voeg de geselecteerde vluchtsoort toe aan de lijst met vluchten
-    vluchten_met_type = ["Alle vluchten", selected_type] + vluchten_binnen_type
+    vluchten_met_type = ["Alle vluchten"] + vluchten_binnen_type
 
     # Streamlit multiselect met de aangepaste lijst
     selected_flights = st.multiselect("Selecteer vlucht(en):", vluchten_met_type, default=["Alle vluchten"])
@@ -146,7 +143,7 @@ elif page == "🔊 Geoplot geluidoverlast":
             route_layers.append(
                 pdk.Layer(
                     "PathLayer",
-                    # data=[{"path": route_coordinates, "FlightNumber": flight_number}],  # FlightNumber toegevoegd
+                    # Data voor de tooltip en path defineren
                     data=[{
                         "path": route_coordinates, 
                         "FlightNumber": flight_number, 
@@ -183,7 +180,6 @@ elif page == "🔊 Geoplot geluidoverlast":
         zoom=8
     )
     
-    # # Noise aan toevoegen
     # Maak een pydeck Deck (kaart)
     deck = pdk.Deck(
     layers= route_layers + [radius_layer],
