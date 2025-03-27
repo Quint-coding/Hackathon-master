@@ -91,6 +91,10 @@ def load_and_process_data():
     vluchten = df['FlightNumber'].unique().tolist()
     vluchten.sort()
 
+    # Sorteer de unieke dagen in de gewenste volgorde
+    gewenste_volgorde_dagen = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    dagen = sorted(df['Day'].unique(), key=lambda d: gewenste_volgorde_dagen.index(d))
+
     return df, vlucht_types, vluchten, dagen
 
 # Home Page
@@ -261,8 +265,17 @@ elif page == "🔊 pagina 3":
     # Streamlit interface - Keuze tussen Aankomst of Vertrek
     selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
 
-    # Streamlit interface - Keuze van dag
-    selected_day = st.selectbox("Selecteer een dag:", dagen)
+    # Voeg de optie "Alle dagen" toe aan de lijst met dagen
+    dagen_met_alles = ["Alle dagen"] + dagen
+
+    # Streamlit interface - Keuze tussen Dag
+    selected_day = st.radio("Selecteer dag:", dagen_met_alles)
+
+    # Filter de dataset op basis van de geselecteerde dag
+    if selected_day == "Alle dagen":
+        df_filtered_by_day = df_full.copy()
+    else:
+        df_filtered_by_day = df_full[df_full['Day'] == selected_day].copy()
 
     # Filter de dataset op basis van vluchtsoort en geselecteerde dag
     df_filtered_by_type = df_full[(df_full['FlightType'] == selected_type) & (df_full['Day'] == selected_day)].copy()
