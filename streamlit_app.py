@@ -53,10 +53,6 @@ def load_and_process_data():
     # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
     vlucht_types = df['FlightType'].unique().tolist()
     vlucht_types.sort()
-    
-    # Maandag en Dinsdag van elkaar scheiden
-    dagen = df['Day'].unique().tolist()
-    dagen.sort()
 
     # Kleur bepalen op basis van Noise_Level
     def get_noise_color(noise_level):
@@ -92,8 +88,7 @@ def load_and_process_data():
     vluchten = df['FlightNumber'].unique().tolist()
     vluchten.sort()
 
-    return df, vlucht_types, vluchten, dagen
-
+    return df, vlucht_types, vluchten
 # Home Page
 if page == "🔊 Home":
     st.title("Geluid overlast")
@@ -136,7 +131,7 @@ elif page == "🔊 Geoplot geluidoverlast":
              Het Transfer of Control principe zorgt voor de korte vlucht paden van vertrekkende vluchten. De VFR kaarten hiervoor zijn niet beschikbaar.""")
 
     # Laad de data en vluchtsoorten met behulp van de gecachte functie
-    df_full, vlucht_types, vluchten_all, dagen = load_and_process_data()
+    df_full, vlucht_types, vluchten_all = load_and_process_data()
 
     # Streamlit interface - Keuze tussen Aankomst of Vertrek
     selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
