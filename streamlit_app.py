@@ -218,7 +218,7 @@ elif page == "🔊 Theoretische context":
                 st.write(f"  Intercept: {intercept:.2f}")
 
         # Update layout voor betere leesbaarheid
-        fig.update_layout(legend_title_text='Type')
+        fig.update_layout(yaxis=dict(rangemode="tozero"))
 
         # Stel de limieten voor de y-as in zodat deze niet onder nul gaat
         fig.update_layout(yaxis=dict(rangemode="tozero"))
