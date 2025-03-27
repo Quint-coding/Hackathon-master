@@ -222,7 +222,7 @@ elif page == "🔊 Geoplot geluidoverlast":
             <b>Speed:</b> {Speed_kph} kph<br/>
             <b>Height:</b> {Altitude_meters} m<br/>
             <b>Time:</b> {Time}<br/>
-            <b>Noise level:</b> {Noise_Level}
+            <b>Noise level:</b> {Noise_Level} dB
         """,
         "style": {
             "backgroundColor": "white",
