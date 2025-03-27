@@ -184,11 +184,7 @@ elif page == "🔊 Theoretische context":
     # Show the plot in Streamlit
     st.plotly_chart(fig)
 
-    # Voorbeeld DataFrame (vervang dit met jouw daadwerkelijke df)
-    data = {'max_db_onder': [80] * 250 + [70] * 150 + [90] * 300,
-            'altitude': list(range(250)) + list(range(150, 300)) + list(range(300, 600)),
-            'type': ['A'] * 250 + ['B'] * 150 + ['A'] * 300}
-    df = pd.DataFrame(data)
+    st.subtitle("Vlucht types en hun coefficient")
 
     # Eerst filteren we de DataFrame op basis van het aantal gegevenspunten per 'type'
     filtered_df = df.groupby('type').filter(lambda x: len(x) >= 200)
