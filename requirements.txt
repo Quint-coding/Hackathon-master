@@ -3,5 +3,5 @@ numpy
 pandas
 pydeck
 datetime
-# plotly
+plotly
 # matplotlib.pyplot

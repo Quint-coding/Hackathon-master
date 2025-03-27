@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pydeck as pdk
+import plotly.express as px
 # from datetime import datetime
 # import json
 
@@ -258,3 +259,23 @@ elif page == "🔊 pagina 3":
     st.subheader("Welkom bij ons schiphol dashboard over geluid overlast")
 
     st.write("""bonjour""")
+
+    plane_specs = pd.read_csv('plane_specs_zonder_fouten.csv')
+
+    fig = px.bar(plane_specs, 'seats', 'range_km', color='type', title='Actieradius per passagierscapaciteit')
+    fig.show()
+
+    fig = px.bar(plane_specs, 'max_takeoff_weight_t', 'range_km', color='type', title='Actieradius per startgewicht (\'massa rijklaar\' in autotermen)')
+    fig.show()
+
+    fig = px.bar(plane_specs, 'empty_weight_t', 'range_km', color='type', title='Actieradius per leeggewicht (\'massa ledig voertuig\' in autotermen)')
+    fig.show()
+
+    fig = px.bar(plane_specs, 'seats', 'ceiling_m', color='type', title='Dienstplafond per passagierscapaciteit')
+    fig.show()
+
+    fig = px.bar(plane_specs, 'max_takeoff_weight_t', 'ceiling_m', color='type', title='Dienstplafond per startgewicht (\'massa rijklaar\' in autotermen)')
+    fig.show()
+
+    fig = px.bar(plane_specs, 'empty_weight_t', 'ceiling_m', color='type', title='Dienstplafond per leeggewicht (\'massa ledig voertuig\' in autotermen)')
+    fig.show()
