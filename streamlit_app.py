@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pydeck as pdk
+import matplotlib.pyplot as plt
 import plotly.express as px
 from scipy.optimize import curve_fit
 from sklearn.metrics import r2_score
