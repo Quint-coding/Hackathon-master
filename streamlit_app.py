@@ -37,6 +37,62 @@ page = st.sidebar.radio("Ga naar", ["🔊 Home",
                                     "🔊 Geoplot geluidoverlast", 
                                     "🔊 pagina 3"])
 
+
+@st.cache_data
+def load_and_process_data():
+    df = pd.read_csv('timestamp vlucht df.csv')
+
+    # Converteer kolommen naar numerieke waarden
+    df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
+    df['Longitude'] = pd.to_numeric(df['Longitude'], errors='coerce')
+
+    # Filter rijen met ontbrekende waarden
+    df = df.dropna(subset=['Latitude', 'Longitude', 'FlightType', 'FlightNumber', 'Course', 'Speed_kph', 'Altitude_meters', 'Time'])
+
+    # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
+    vlucht_types = df['FlightType'].unique().tolist()
+    vlucht_types.sort()
+    
+    # Maandag en Dinsdag van elkaar scheiden
+    dagen = df['Day'].unique().tolist()
+    dagen.sort()
+
+    # Kleur bepalen op basis van Noise_Level
+    def get_noise_color(noise_level):
+        """Gives a smooth color transition from red (high noise) → orange → green (low noise)"""
+        
+        if noise_level < 60:
+            # Below 60 dB: Light Green
+            return [50, 205, 50, 150]  # LimeGreen (softer than LightGreen)
+        
+        elif noise_level < 75:
+            # 60 - 75 dB: Smooth transition from green to orange
+            factor = (noise_level - 60) / (75 - 60)  # 0 to 1
+            red = int(255 * factor + 50 * (1 - factor))  # 50 (green) → 255 (orange)
+            green = int(165 * factor + 205 * (1 - factor))  # 205 (green) → 165 (orange)
+            blue = 0  # No blue for a clean transition
+            return [red, green, blue, 180]
+        
+        elif noise_level < 90:
+            # 75 - 90 dB: Transition from orange to red
+            factor = (noise_level - 75) / (90 - 75)  # 0 to 1
+            red = 255  # Always full red
+            green = int(165 * (1 - factor) + 50 * factor)  # 165 (orange) → 50 (deep red)
+            blue = 0  # Keep pure warm colors
+            return [red, green, blue, 200]
+        
+        else:
+            # Above 90 dB: Deep Red
+            return [255, 50, 50, 220]  # Strong red (softened with a slight reduction in blue)
+
+    df['color'] = df['Noise_Level'].apply(get_noise_color)
+
+    # Unieke vluchten ophalen
+    vluchten = df['FlightNumber'].unique().tolist()
+    vluchten.sort()
+
+    return df, vlucht_types, vluchten, dagen
+
 # Home Page
 if page == "🔊 Home":
     st.title("Geluid overlast")
@@ -62,6 +118,8 @@ if page == "🔊 Home":
     - Quint Klaassen
     """)
 
+    
+
 elif page == "🔊 Theoretische context":
     st.title("Natuurkundige overlast")
     st.subheader("Hier zullen wij meer context geven bij de overlast veroorzaakt door vliegtuigen")
@@ -76,69 +134,14 @@ elif page == "🔊 Geoplot geluidoverlast":
     st.write("""Hieronder kunt u de keuze maken naar het type vlucht en eventueel verder specificeren naar exacte vluchten.
              Het Transfer of Control principe zorgt voor de korte vlucht paden van vertrekkende vluchten. De VFR kaarten hiervoor zijn niet beschikbaar.""")
 
-    @st.cache_data
-    def load_and_process_data():
-        df = pd.read_csv('timestamp vlucht df.csv')
-
-        # Converteer kolommen naar numerieke waarden
-        df['Latitude'] = pd.to_numeric(df['Latitude'], errors='coerce')
-        df['Longitude'] = pd.to_numeric(df['Longitude'], errors='coerce')
-
-        # Filter rijen met ontbrekende waarden
-        df = df.dropna(subset=['Latitude', 'Longitude', 'FlightType', 'FlightNumber', 'Course', 'Speed_kph', 'Altitude_meters', 'Time'])
-
-        # Unieke vluchtsoorten ophalen (Aankomst/Vertrek)
-        vlucht_types = df['FlightType'].unique().tolist()
-        vlucht_types.sort()
-        
-        # Maandag en Dinsdag van elkaar scheiden
-        dagen = df['Day'].unique().tolist()
-        dagen.sort()
-
-        # Kleur bepalen op basis van Noise_Level
-        def get_noise_color(noise_level):
-            """Gives a smooth color transition from red (high noise) → orange → green (low noise)"""
-            
-            if noise_level < 60:
-                # Below 60 dB: Light Green
-                return [50, 205, 50, 150]  # LimeGreen (softer than LightGreen)
-            
-            elif noise_level < 75:
-                # 60 - 75 dB: Smooth transition from green to orange
-                factor = (noise_level - 60) / (75 - 60)  # 0 to 1
-                red = int(255 * factor + 50 * (1 - factor))  # 50 (green) → 255 (orange)
-                green = int(165 * factor + 205 * (1 - factor))  # 205 (green) → 165 (orange)
-                blue = 0  # No blue for a clean transition
-                return [red, green, blue, 180]
-            
-            elif noise_level < 90:
-                # 75 - 90 dB: Transition from orange to red
-                factor = (noise_level - 75) / (90 - 75)  # 0 to 1
-                red = 255  # Always full red
-                green = int(165 * (1 - factor) + 50 * factor)  # 165 (orange) → 50 (deep red)
-                blue = 0  # Keep pure warm colors
-                return [red, green, blue, 200]
-            
-            else:
-                # Above 90 dB: Deep Red
-                return [255, 50, 50, 220]  # Strong red (softened with a slight reduction in blue)
-
-        df['color'] = df['Noise_Level'].apply(get_noise_color)
-
-        # Unieke vluchten ophalen
-        vluchten = df['FlightNumber'].unique().tolist()
-        vluchten.sort()
-
-        return df, vlucht_types, vluchten, dagen
-
     # Laad de data en vluchtsoorten met behulp van de gecachte functie
     df_full, vlucht_types, vluchten_all, dagen = load_and_process_data()
 
     # Streamlit interface - Keuze tussen Aankomst of Vertrek
-    selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
+    selected_day = st.radio("Selecteer dag:", dagen)
 
     # Streamlit interface - Keuze tussen Aankomst of Vertrek
-    selected_day = st.radio("Selecteer dag:", dagen)
+    selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
 
     # Filter de dataset op basis van vluchtsoort
     df_filtered_by_type = df_full[df_full['FlightType'] == selected_type].copy()
