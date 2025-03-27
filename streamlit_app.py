@@ -253,20 +253,21 @@ elif page == "🔊 pagina 3":
 
     plane_specs = pd.read_csv('plane_specs_zonder_fouten.csv')
 
-    fig = px.bar(plane_specs, 'seats', 'range_km', color='type', title='Actieradius per passagierscapaciteit')
-    fig.show()
+    fig1 = px.bar(plane_specs, 'seats', 'range_km', color='type', title='Actieradius per passagierscapaciteit')
 
-    fig = px.bar(plane_specs, 'max_takeoff_weight_t', 'range_km', color='type', title='Actieradius per startgewicht (\'massa rijklaar\' in autotermen)')
-    fig.show()
+    fig2 = px.bar(plane_specs, 'max_takeoff_weight_t', 'range_km', color='type', title='Actieradius per startgewicht (\'massa rijklaar\' in autotermen)')
 
-    fig = px.bar(plane_specs, 'empty_weight_t', 'range_km', color='type', title='Actieradius per leeggewicht (\'massa ledig voertuig\' in autotermen)')
-    fig.show()
+    fig3 = px.bar(plane_specs, 'empty_weight_t', 'range_km', color='type', title='Actieradius per leeggewicht (\'massa ledig voertuig\' in autotermen)')
 
-    fig = px.bar(plane_specs, 'seats', 'ceiling_m', color='type', title='Dienstplafond per passagierscapaciteit')
-    fig.show()
+    fig4 = px.bar(plane_specs, 'seats', 'ceiling_m', color='type', title='Dienstplafond per passagierscapaciteit')
 
-    fig = px.bar(plane_specs, 'max_takeoff_weight_t', 'ceiling_m', color='type', title='Dienstplafond per startgewicht (\'massa rijklaar\' in autotermen)')
-    fig.show()
+    fig5 = px.bar(plane_specs, 'max_takeoff_weight_t', 'ceiling_m', color='type', title='Dienstplafond per startgewicht (\'massa rijklaar\' in autotermen)')
 
-    fig = px.bar(plane_specs, 'empty_weight_t', 'ceiling_m', color='type', title='Dienstplafond per leeggewicht (\'massa ledig voertuig\' in autotermen)')
-    fig.show()
+    fig6 = px.bar(plane_specs, 'empty_weight_t', 'ceiling_m', color='type', title='Dienstplafond per leeggewicht (\'massa ledig voertuig\' in autotermen)')
+
+    st.plotly_chart(fig1)
+    st.plotly_chart(fig2)
+    st.plotly_chart(fig3)
+    st.plotly_chart(fig4)
+    st.plotly_chart(fig5)
+    st.plotly_chart(fig6)
