@@ -197,7 +197,7 @@ elif page == "🔊 Theoretische context":
     # Filter the DataFrame based on the number of entries per type
     filtered_df = df.groupby('type').filter(lambda x: len(x) >= 100) # Reduced for example data
 
-    st.subeheader("Scatterplot of Altitude vs. dB with Logarithmic Fits")
+    st.subheader("Scatterplot of Altitude vs. dB with Logarithmic Fits")
 
     if not filtered_df.empty:
         fig = px.scatter(filtered_df, x='max_db_onder', y='altitude', color='type',
