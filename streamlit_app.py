@@ -205,7 +205,8 @@ elif page == "🔊 Theoretische context":
     if not filtered_df.empty:
         fig = px.scatter(filtered_df, x='max_db_onder', y='altitude', color='type',
                         labels={'max_db_onder': 'Max dB Onder', 'altitude': 'Altitude (m)'},
-                        title='Altitude vs. Max dB Onder by Type with Logarithmic Fits')
+                        title='Altitude vs. Max dB Onder by Type with Logarithmic Fits', 
+                        opacity= 0.8)
 
         # Function for logarithmic fit
         def logaritmische_functie(afstand, a, b):
