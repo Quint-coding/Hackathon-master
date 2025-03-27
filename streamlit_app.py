@@ -265,17 +265,20 @@ elif page == "🔊 pagina 3":
     # Streamlit interface - Keuze tussen Aankomst of Vertrek
     selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
 
-    # Voeg de optie "Alle dagen" toe aan de lijst met dagen
-    dagen_met_alles = ["Alle dagen"] + dagen
+    # Voeg optie toe om alle dagen te selecteren
+    dagen = ["Alle dagen"] + dagen
 
-    # Streamlit interface - Keuze tussen Dag
-    selected_day = st.radio("Selecteer dag:", dagen_met_alles)
+    # Streamlit interface - Keuze tussen Aankomst of Vertrek
+    selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
 
-    # Filter de dataset op basis van de geselecteerde dag
+    # Streamlit interface - Keuze van dag
+    selected_day = st.selectbox("Selecteer een dag:", dagen)
+
+    # Filter de dataset op basis van vluchtsoort en geselecteerde dag
     if selected_day == "Alle dagen":
-        df_filtered_by_day = df_full.copy()
+        df_filtered_by_type = df_full[df_full['FlightType'] == selected_type].copy()
     else:
-        df_filtered_by_day = df_full[df_full['Day'] == selected_day].copy()
+        df_filtered_by_type = df_full[(df_full['FlightType'] == selected_type) & (df_full['Day'] == selected_day)].copy()
 
     # Filter de dataset op basis van vluchtsoort en geselecteerde dag
     df_filtered_by_type = df_full[(df_full['FlightType'] == selected_type) & (df_full['Day'] == selected_day)].copy()
