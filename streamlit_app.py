@@ -320,11 +320,12 @@ elif page == "🔊 Conclusies":
     # Verwijder ongeldige waarden (NaN of oneindige waarden) in de relevante kolommen
     cleaned_df = df.dropna(subset=['max_db_onder', 'altitude'])
     cleaned_df = cleaned_df[~cleaned_df['max_db_onder'].isin([float('inf'), float('-inf')])]
+    cleaned_df = cleaned_df[cleaned_df['altitude'] > 0] # Ensure altitude is positive for log
 
-    # Sorteer de DataFrame op 'altitude'
+    # Sorteer de DataFrame op 'altitude' (not strictly necessary for scatter but good practice)
     cleaned_df = cleaned_df.sort_values(by='altitude')
 
-    # Gegeven data (vervang deze met jouw eigen data)
+    # Gegeven data
     afstanden = cleaned_df['altitude']
     decibels = cleaned_df['max_db_onder']
 
@@ -332,8 +333,12 @@ elif page == "🔊 Conclusies":
         return a + b * np.log10(afstand)
 
     # Parameters fitting
-    parameters, covariantie = curve_fit(logaritmische_functie, afstanden, decibels)
-    a, b = parameters
+    try:
+        parameters, covariantie = curve_fit(logaritmische_functie, afstanden, decibels, p0=[90, -10]) # Initial guesses
+        a, b = parameters
+    except RuntimeError:
+        st.error("Optimalisatie is mislukt. Controleer de data of probeer andere startwaarden.")
+        st.stop()
 
     # Genereer punten voor de vloeiende lijn
     x_fit = np.linspace(min(afstanden), max(afstanden), 100)
@@ -343,17 +348,84 @@ elif page == "🔊 Conclusies":
     y_pred = logaritmische_functie(afstanden, a, b)
     r2 = r2_score(decibels, y_pred)
 
-    # Create plot
-    fig, ax = plt.subplots()
-    ax.scatter(afstanden, decibels, label=f"alle vluchten (R² = {r2:.2f})")
-    ax.plot(x_fit, y_fit, color="red", label="y= 112.01 + -14.35 * log10(x)")
-    ax.set_xlabel("Afstand (meter)")
-    ax.set_ylabel("Decibel (dB)")
-    ax.legend()
+    # Create plot with improved aesthetics
+    fig, ax = plt.subplots(figsize=(10, 6)) # Adjust figure size
+    scatter = ax.scatter(afstanden, decibels, alpha=0.6, label=f"Alle vluchten (R² = {r2:.2f})")
+    line = ax.plot(x_fit, y_fit, color="red", linewidth=2, label=f"y= {a:.2f} + {b:.2f} * log10(x)")
+    ax.set_xlabel("Hoogte (meter)", fontsize=12) # More descriptive label
+    ax.set_ylabel("Max Geluidsniveau Onder (dB)", fontsize=12) # More descriptive label
+    ax.set_title("Relatie tussen Vlieghoogte en Maximaal Geluidsniveau", fontsize=14)
+    ax.grid(True, linestyle='--', alpha=0.7) # Add a grid
+    ax.legend(fontsize=10)
+    ax.tick_params(axis='both', which='major', labelsize=10) # Improve tick label size
+
+    # Add tooltips on hover (requires enabling interactivity in Streamlit if not default)
+    annot = ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
+                        bbox=dict(boxstyle="round,pad=0.3", fc="yellow", alpha=0.8),
+                        arrowprops=dict(arrowstyle="->"))
+    annot.set_visible(False)
+
+    def update_annot(ind):
+        pos = scatter.get_offsets()[ind["ind"][0]]
+        annot.xy = pos
+        altitude = afstanden.iloc[ind["ind"][0]]
+        db = decibels.iloc[ind["ind"][0]]
+        text = f"Hoogte: {altitude:.2f}m, Geluid: {db:.2f}dB"
+        annot.set_text(text)
+        annot.get_bbox_patch().set_alpha(0.4)
+
+    def hover(event):
+        vis = annot.get_visible()
+        if event.inaxes == ax:
+            cont, ind = scatter.contains(event)
+            if cont:
+                update_annot(ind)
+                annot.set_visible(True)
+                fig.canvas.draw_idle()
+            else:
+                if vis:
+                    annot.set_visible(False)
+                    fig.canvas.draw_idle()
+
+    fig.canvas.mpl_connect("motion_notify_event", hover)
 
     # Use Streamlit to display the plot
     st.pyplot(fig)
 
     # Display the results in Streamlit
-    st.write(f"De aangepaste formule is: decibel = {a:.2f} + {b:.2f} * log10(afstand)")
+    st.write(f"De aangepaste formule is: decibel = {a:.2f} + {b:.2f} * log10(hoogte)") # More descriptive
     st.write(f"R²-waarde: {r2:.2f}")
+
+    # --- Additional Analysis (Optional) ---
+    st.subheader("Extra Analyse (Optioneel)")
+
+    # Check for outliers (simple IQR method as an example)
+    Q1_alt = cleaned_df['altitude'].quantile(0.25)
+    Q3_alt = cleaned_df['altitude'].quantile(0.75)
+    IQR_alt = Q3_alt - Q1_alt
+    lower_bound_alt = Q1_alt - 1.5 * IQR_alt
+    upper_bound_alt = Q3_alt + 1.5 * IQR_alt
+    alt_outliers = cleaned_df[(cleaned_df['altitude'] < lower_bound_alt) | (cleaned_df['altitude'] > upper_bound_alt)]
+    st.write(f"Aantal mogelijke uitbijters in hoogte: {len(alt_outliers)}")
+    if not alt_outliers.empty:
+        if st.checkbox("Toon uitbijters in hoogte"):
+            st.dataframe(alt_outliers)
+
+    Q1_db = cleaned_df['max_db_onder'].quantile(0.25)
+    Q3_db = cleaned_df['max_db_onder'].quantile(0.75)
+    IQR_db = Q3_db - Q1_db
+    lower_bound_db = Q1_db - 1.5 * IQR_db
+    upper_bound_db = Q3_db + 1.5 * IQR_db
+    db_outliers = cleaned_df[(cleaned_df['max_db_onder'] < lower_bound_db) | (cleaned_df['max_db_onder'] > upper_bound_db)]
+    st.write(f"Aantal mogelijke uitbijters in geluidsniveau: {len(db_outliers)}")
+    if not db_outliers.empty:
+        if st.checkbox("Toon uitbijters in geluidsniveau"):
+            st.dataframe(db_outliers)
+
+    if st.checkbox("Toon spreiding van de data (boxplot)"):
+        fig_box, ax_box = plt.subplots(1, 2, figsize=(12, 5))
+        ax_box[0].boxplot(cleaned_df['altitude'], labels=['Hoogte'])
+        ax_box[0].set_title('Spreiding van Vlieghoogte')
+        ax_box[1].boxplot(cleaned_df['max_db_onder'], labels=['Geluidsniveau'])
+        ax_box[1].set_title('Spreiding van Maximaal Geluidsniveau')
+        st.pyplot(fig_box)
