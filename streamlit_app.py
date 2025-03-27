@@ -184,7 +184,7 @@ elif page == "🔊 Theoretische context":
     # Show the plot in Streamlit
     st.plotly_chart(fig)
 
-    st.subtitle("Vlucht types en hun coefficient")
+    st.subheader("Vlucht types en hun coefficient")
 
     # Eerst filteren we de DataFrame op basis van het aantal gegevenspunten per 'type'
     filtered_df = df.groupby('type').filter(lambda x: len(x) >= 200)
