@@ -4,4 +4,6 @@ pandas
 pydeck
 datetime
 plotly
+sklearn
+scipy
 # matplotlib.pyplot

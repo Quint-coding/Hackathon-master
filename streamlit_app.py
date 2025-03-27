@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import pydeck as pdk
 import plotly.express as px
+from scipy.optimize import curve_fit
+from sklearn.metrics import r2_score
 # from datetime import datetime
 # import json
 
@@ -312,3 +314,46 @@ elif page == "🔊 Geoplot geluidoverlast":
 elif page == "🔊 Conclusies":
 
     st.write("De Boeing 777 is een schreeuwer")
+
+    df = pd.read_csv('Geluid per callsign.csv')
+
+    # Verwijder ongeldige waarden (NaN of oneindige waarden) in de relevante kolommen
+    cleaned_df = df.dropna(subset=['max_db_onder', 'altitude'])
+    cleaned_df = cleaned_df[~cleaned_df['max_db_onder'].isin([float('inf'), float('-inf')])]
+
+    # Sorteer de DataFrame op 'altitude'
+    cleaned_df = cleaned_df.sort_values(by='altitude')
+
+    # Gegeven data (vervang deze met jouw eigen data)
+    afstanden = cleaned_df['altitude']
+    decibels = cleaned_df['max_db_onder']
+
+    def logaritmische_functie(afstand, a, b):
+        return a + b * np.log10(afstand)
+
+    # Parameters fitting
+    parameters, covariantie = curve_fit(logaritmische_functie, afstanden, decibels)
+    a, b = parameters
+
+    # Genereer punten voor de vloeiende lijn
+    x_fit = np.linspace(min(afstanden), max(afstanden), 100)
+    y_fit = logaritmische_functie(x_fit, a, b)
+
+    # Bereken de R²-waarde
+    y_pred = logaritmische_functie(afstanden, a, b)
+    r2 = r2_score(decibels, y_pred)
+
+    # Create plot
+    fig, ax = plt.subplots()
+    ax.scatter(afstanden, decibels, label=f"alle vluchten (R² = {r2:.2f})")
+    ax.plot(x_fit, y_fit, color="red", label="y= 112.01 + -14.35 * log10(x)")
+    ax.set_xlabel("Afstand (meter)")
+    ax.set_ylabel("Decibel (dB)")
+    ax.legend()
+
+    # Use Streamlit to display the plot
+    st.pyplot(fig)
+
+    # Display the results in Streamlit
+    st.write(f"De aangepaste formule is: decibel = {a:.2f} + {b:.2f} * log10(afstand)")
+    st.write(f"R²-waarde: {r2:.2f}")
