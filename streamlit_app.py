@@ -35,8 +35,9 @@ st.markdown(
 st.sidebar.title("📍 Navigatie")
 page = st.sidebar.radio("Ga naar", ["🔊 Home", 
                                     "🔊 Theoretische context", 
-                                    "🔊 Geoplot geluidoverlast", 
-                                    "🔊 Analyse vliegtuig modellen"])
+                                    "🔊 Analyse vliegtuig modellen",
+                                    "🔊 Geoplot geluidoverlast"
+                                    ])
 
 
 @st.cache_data
