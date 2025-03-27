@@ -92,10 +92,6 @@ def load_and_process_data():
     vluchten = df['FlightNumber'].unique().tolist()
     vluchten.sort()
 
-    # Sorteer de unieke dagen in de gewenste volgorde
-    gewenste_volgorde_dagen = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-    dagen = sorted(df['Day'].unique(), key=lambda d: gewenste_volgorde_dagen.index(d))
-
     return df, vlucht_types, vluchten, dagen
 
 # Home Page
