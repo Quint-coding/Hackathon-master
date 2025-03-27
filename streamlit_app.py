@@ -322,6 +322,13 @@ elif page == "🔊 Conclusies":
     df_cleaned = df_cleaned[~df_cleaned['max_db_onder'].isin([float('inf'), float('-inf')])]
     df_cleaned = df_cleaned[df_cleaned['altitude'] > 0]  # Ensure positive altitude for log
 
+    st.write("Data na opschonen:")
+    st.dataframe(df_cleaned.head()) # Display cleaned data
+
+    if df_cleaned.empty:
+        st.warning("Waarschuwing: De data is leeg na het opschonen. Er kan niets worden geplot.")
+        st.stop()
+
     # Sorteer de DataFrame op 'altitude' (goede praktijk voor visualisatie)
     df_cleaned = df_cleaned.sort_values(by='altitude')
 
@@ -337,17 +344,20 @@ elif page == "🔊 Conclusies":
     try:
         parameters, _ = curve_fit(logaritmische_functie, afstanden, decibels, p0=[90, -10])  # Initial guesses
         a, b = parameters
-    except RuntimeError:
-        st.error("Optimalisatie is mislukt. Controleer de data of probeer andere startwaarden.")
+        st.write(f"Fit parameters: a = {a:.2f}, b = {b:.2f}") # Display fitted parameters
+    except RuntimeError as e:
+        st.error(f"Optimalisatie is mislukt: {e}. Controleer de data of probeer andere startwaarden.")
         st.stop()
 
     # Genereer lijn voor de fitting
     x_fit = np.linspace(min(afstanden), max(afstanden), 100)
     y_fit = logaritmische_functie(x_fit, a, b)
+    fit_df = pd.DataFrame({'altitude': x_fit, 'max_db_onder_fit': y_fit}) # Create DataFrame for fit line
 
     # Bereken de R²-waarde
     y_pred = logaritmische_functie(afstanden, a, b)
     r2 = r2_score(decibels, y_pred)
+    st.write(f"R²-waarde: {r2:.2f}")
 
     # Create a scatter plot with Plotly
     fig = px.scatter(df_cleaned, x='altitude', y='max_db_onder',
@@ -356,7 +366,7 @@ elif page == "🔊 Conclusies":
                     hover_data=['altitude', 'max_db_onder'])
 
     # Add the fitted line to the plot
-    fig.add_scatter(x=x_fit, y=y_fit, mode='lines', name=f'y = {a:.2f} + {b:.2f} * log10(x)', line=dict(color='red'))
+    fig.add_trace(px.scatter(x=fit_df['altitude'], y=fit_df['max_db_onder_fit'], mode='lines', name=f'y = {a:.2f} + {b:.2f} * log10(x)', line=dict(color='red')))
 
     # Show the plot in Streamlit
     st.plotly_chart(fig)
