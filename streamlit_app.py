@@ -184,24 +184,32 @@ elif page == "🔊 Theoretische context":
     # Show the plot in Streamlit
     st.plotly_chart(fig)
 
+    # Voorbeeld DataFrame (vervang dit met jouw daadwerkelijke df)
+    data = {'max_db_onder': [80] * 250 + [70] * 150 + [90] * 300,
+            'altitude': list(range(250)) + list(range(150, 300)) + list(range(300, 600)),
+            'type': ['A'] * 250 + ['B'] * 150 + ['A'] * 300}
+    df = pd.DataFrame(data)
 
-    def plot_scatter_with_trendlines_plotly(df):
+    # Eerst filteren we de DataFrame op basis van het aantal gegevenspunten per 'type'
+    filtered_df = df.groupby('type').filter(lambda x: len(x) >= 200)
+
+    def plot_scatter_with_trendlines_plotly(df_to_plot):  # Changed parameter name for clarity
         """
         Maakt een scatterplot met trendlijnen gesplitst op 'type' met Plotly Express in Streamlit.
 
         Args:
-            df (pd.DataFrame): De DataFrame met 'max_db_onder', 'altitude' en 'type' kolommen.
+            df_to_plot (pd.DataFrame): De DataFrame met 'max_db_onder', 'altitude' en 'type' kolommen.
         """
         st.subheader("Scatterplot van max_db_onder tegen Altitude per Type met Trendlijnen")
 
-        fig = px.scatter(df, x='max_db_onder', y='altitude', color='type',
+        fig = px.scatter(df_to_plot, x='max_db_onder', y='altitude', color='type',
                         labels={'max_db_onder': 'max_db_onder', 'altitude': 'Altitude in [m]'},
                         title='Scatterplot van max_db_onder tegen Altitude per Type met Trendlijnen',
                         hover_data=['type'])
 
         # Bereken en voeg trendlijnen toe
-        for type_val in df['type'].unique():
-            subset_df = df[df['type'] == type_val]
+        for type_val in df_to_plot['type'].unique():
+            subset_df = df_to_plot[df_to_plot['type'] == type_val]
             if not subset_df.empty:
                 slope, intercept, r_value, p_value, std_err = stats.linregress(subset_df['max_db_onder'], subset_df['altitude'])
                 x_range = [subset_df['max_db_onder'].min(), subset_df['max_db_onder'].max()]
@@ -221,9 +229,10 @@ elif page == "🔊 Theoretische context":
 
         # Toon de plot in Streamlit
         st.plotly_chart(fig)
-    
 
-    plot_scatter_with_trendlines_plotly(df)
+
+    filtered_df = df.groupby('type').filter(lambda x: len(x) >= 200)
+    plot_scatter_with_trendlines_plotly(filtered_df) 
 
 
 elif page == "🔊 Analyse vliegtuig modellen":
