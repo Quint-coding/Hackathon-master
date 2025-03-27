@@ -276,7 +276,7 @@ elif page == "🔊 pagina 3":
         num_available_flights = len(df_filtered_by_type['FlightNumber'].unique())
         max_flights_to_show = st.slider(
             "Aantal vluchten om te tonen:",
-            min_value=5,
+            min_value=0,
             max_value=num_available_flights if num_available_flights > 0 else 5,
             value=min(20, num_available_flights) if num_available_flights > 0 else 20,
             step=5
