@@ -192,46 +192,21 @@ elif page == "🔊 Theoretische context":
     def plot_scatter_with_trendlines_plotly(df_to_plot):
         """
         Maakt een scatterplot met trendlijnen gesplitst op 'type' met Plotly Express in Streamlit,
-        verwijdert outliers (IQR methode) en zorgt dat de y-as bij nul begint.
+        met aangepaste x- en y-aslimieten.
 
         Args:
             df_to_plot (pd.DataFrame): De DataFrame met 'max_db_onder', 'altitude' en 'type' kolommen.
         """
-        st.subheader("Scatterplot van max_db_onder tegen Altitude per Type met Trendlijnen (Zonder Outliers)")
+        st.subheader("Scatterplot van max_db_onder tegen Altitude per Type met Trendlijnen")
 
-        # Outlier verwijdering (per type)
-        df_filtered = pd.DataFrame()
-        for type_val in df_to_plot['type'].unique():
-            subset_df = df_to_plot[df_to_plot['type'] == type_val].copy()
-
-            Q1_alt = subset_df['altitude'].quantile(0.25)
-            Q3_alt = subset_df['altitude'].quantile(0.75)
-            IQR_alt = Q3_alt - Q1_alt
-            lower_bound_alt = Q1_alt - 1.5 * IQR_alt
-            upper_bound_alt = Q3_alt + 1.5 * IQR_alt
-            subset_df_filtered_alt = subset_df[(subset_df['altitude'] >= lower_bound_alt) & (subset_df['altitude'] <= upper_bound_alt)]
-
-            Q1_db = subset_df_filtered_alt['max_db_onder'].quantile(0.25)
-            Q3_db = subset_df_filtered_alt['max_db_onder'].quantile(0.75)
-            IQR_db = Q3_db - Q1_db
-            lower_bound_db = Q1_db - 1.5 * IQR_db
-            upper_bound_db = Q3_db + 1.5 * IQR_db
-            subset_df_filtered = subset_df_filtered_alt[(subset_df_filtered_alt['max_db_onder'] >= lower_bound_db) & (subset_df_filtered_alt['max_db_onder'] <= upper_bound_db)]
-
-            df_filtered = pd.concat([df_filtered, subset_df_filtered])
-
-        if df_filtered.empty:
-            st.warning("Waarschuwing: Geen datapunten over na het verwijderen van outliers.")
-            return
-
-        fig = px.scatter(df_filtered, x='max_db_onder', y='altitude', color='type',
+        fig = px.scatter(df_to_plot, x='max_db_onder', y='altitude', color='type',
                         labels={'max_db_onder': 'max_db_onder', 'altitude': 'Altitude in [m]'},
-                        title='Scatterplot van max_db_onder tegen Altitude per Type met Trendlijnen (Zonder Outliers)',
+                        title='Scatterplot van max_db_onder tegen Altitude per Type met Trendlijnen',
                         hover_data=['type'])
 
-        # Bereken en voeg trendlijnen toe (op de gefilterde data)
-        for type_val in df_filtered['type'].unique():
-            subset_df = df_filtered[df_filtered['type'] == type_val]
+        # Bereken en voeg trendlijnen toe
+        for type_val in df_to_plot['type'].unique():
+            subset_df = df_to_plot[df_to_plot['type'] == type_val]
             if not subset_df.empty:
                 slope, intercept, r_value, p_value, std_err = stats.linregress(subset_df['max_db_onder'], subset_df['altitude'])
                 x_range = [subset_df['max_db_onder'].min(), subset_df['max_db_onder'].max()]
@@ -239,15 +214,29 @@ elif page == "🔊 Theoretische context":
                 fig.add_scatter(x=x_range, y=y_trend, mode='lines',
                                 name=f'{type_val} (Trend)', line=dict(dash='dash'))
 
-                st.write(f"Trendlijn Coëfficiënten voor {type_val} (Zonder Outliers):")
+                st.write(f"Trendlijn Coëfficiënten voor {type_val}:")
                 st.write(f"  Slope: {slope:.2f}")
                 st.write(f"  Intercept: {intercept:.2f}")
 
-        # Update layout voor betere leesbaarheid en y-as start op 0
-        fig.update_layout(legend_title_text='Type', yaxis=dict(rangemode="tozero"))
+        # Update layout voor betere leesbaarheid en aangepaste aslimieten
+        fig.update_layout(
+            legend_title_text='Type',
+            yaxis=dict(rangemode="tozero", range=[0, 3000]),  # Y-as van 0 tot 3000
+            xaxis=dict(range=[0, 160])                       # X-as van 0 tot 160
+        )
 
         # Toon de plot in Streamlit
         st.plotly_chart(fig)
+
+    if __name__ == '__main__':
+        # Voorbeeld DataFrame (vervang dit met jouw daadwerkelijke df)
+        data = {'max_db_onder': [80] * 250 + [70] * 150 + [90] * 300 + [60, 100, 75, 85, 65, 95],
+                'altitude': list(range(250)) + list(range(150, 300)) + list(range(300, 600)) + [2000, 50, 700, 2500, 10, 550],
+                'type': ['A'] * 250 + ['B'] * 150 + ['A'] * 300 + ['A', 'B', 'A', 'B', 'A', 'B']}
+        df = pd.DataFrame(data)
+
+        filtered_df_by_count = df.groupby('type').filter(lambda x: len(x) >= 100) # Adjust count as needed
+        plot_scatter_with_trendlines_plotly(filtered_df_by_count)
 
     if __name__ == '__main__':
         # Voorbeeld DataFrame (vervang dit met jouw daadwerkelijke df)
