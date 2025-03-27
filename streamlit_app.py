@@ -317,89 +317,85 @@ elif page == "🔊 Conclusies":
     st.write("De Boeing 777 is een schreeuwer")
 
     df = pd.read_csv('Geluid per callsign.csv')
+    # Verwijder ongeldige waarden (NaN, oneindige waarden, en negatieve hoogtes)
+    df_cleaned = df.dropna(subset=['max_db_onder', 'altitude'])
+    df_cleaned = df_cleaned[~df_cleaned['max_db_onder'].isin([float('inf'), float('-inf')])]
+    df_cleaned = df_cleaned[df_cleaned['altitude'] > 0]  # Ensure positive altitude for log
 
-    # Verwijder ongeldige waarden (NaN of oneindige waarden) in de relevante kolommen
-    cleaned_df = df.dropna(subset=['max_db_onder', 'altitude'])
-    cleaned_df = cleaned_df[~cleaned_df['max_db_onder'].isin([float('inf'), float('-inf')])]
-    cleaned_df = cleaned_df[cleaned_df['altitude'] > 0] # Ensure altitude is positive for log
-
-    # Sorteer de DataFrame op 'altitude' (not strictly necessary for scatter but good practice)
-    cleaned_df = cleaned_df.sort_values(by='altitude')
+    # Sorteer de DataFrame op 'altitude' (goede praktijk voor visualisatie)
+    df_cleaned = df_cleaned.sort_values(by='altitude')
 
     # Gegeven data
-    afstanden = cleaned_df['altitude']
-    decibels = cleaned_df['max_db_onder']
+    afstanden = df_cleaned['altitude']
+    decibels = df_cleaned['max_db_onder']
 
+    # Logarithmic function for fitting
     def logaritmische_functie(afstand, a, b):
         return a + b * np.log10(afstand)
 
-    # Parameters fitting
+    # Fit the data to the logarithmic function
     try:
-        parameters, covariantie = curve_fit(logaritmische_functie, afstanden, decibels, p0=[90, -10]) # Initial guesses
+        parameters, _ = curve_fit(logaritmische_functie, afstanden, decibels, p0=[90, -10])  # Initial guesses
         a, b = parameters
     except RuntimeError:
         st.error("Optimalisatie is mislukt. Controleer de data of probeer andere startwaarden.")
         st.stop()
 
-    # Genereer punten voor de vloeiende lijn
+    # Genereer lijn voor de fitting
     x_fit = np.linspace(min(afstanden), max(afstanden), 100)
     y_fit = logaritmische_functie(x_fit, a, b)
-    fit_df = pd.DataFrame({'altitude': x_fit, 'max_db_onder_fit': y_fit})
 
     # Bereken de R²-waarde
     y_pred = logaritmische_functie(afstanden, a, b)
     r2 = r2_score(decibels, y_pred)
 
-    # Create scatter plot with Plotly Express
-    fig_scatter = px.scatter(cleaned_df, x='altitude', y='max_db_onder',
-                            labels={'altitude': 'Hoogte (meter)',
-                                    'max_db_onder': 'Max Geluidsniveau Onder (dB)'},
-                            title=f"Relatie tussen Vlieghoogte en Maximaal Geluidsniveau (R² = {r2:.2f})",
-                            hover_data=['altitude', 'max_db_onder'])
+    # Create a scatter plot with Plotly
+    fig = px.scatter(df_cleaned, x='altitude', y='max_db_onder',
+                    labels={'altitude': 'Hoogte (meter)', 'max_db_onder': 'Max Geluidsniveau Onder (dB)'},
+                    title=f"Relatie tussen Vlieghoogte en Maximaal Geluidsniveau (R² = {r2:.2f})",
+                    hover_data=['altitude', 'max_db_onder'])
 
-    # Add the fitted line
-    fig_scatter.add_trace(px.line(fit_df, x='altitude', y='max_db_onder_fit',
-                                color_discrete_sequence=['red'],
-                                labels={'max_db_onder_fit': f'y= {a:.2f} + {b:.2f} * log10(x)'}).data[0])
+    # Add the fitted line to the plot
+    fig.add_scatter(x=x_fit, y=y_fit, mode='lines', name=f'y = {a:.2f} + {b:.2f} * log10(x)', line=dict(color='red'))
 
-    # Update layout for better appearance
-    fig_scatter.update_layout(legend_title_text='Data')
-
-    # Display the plot in Streamlit
-    st.plotly_chart(fig_scatter)
+    # Show the plot in Streamlit
+    st.plotly_chart(fig)
 
     # Display the results in Streamlit
     st.write(f"De aangepaste formule is: decibel = {a:.2f} + {b:.2f} * log10(hoogte)")
     st.write(f"R²-waarde: {r2:.2f}")
 
-    # --- Additional Analysis (Optional) ---
+    # Extra Analyse (Optionally check for outliers)
     st.subheader("Extra Analyse (Optioneel)")
 
-    # Check for outliers (simple IQR method as an example)
-    Q1_alt = cleaned_df['altitude'].quantile(0.25)
-    Q3_alt = cleaned_df['altitude'].quantile(0.75)
+    # Outlier detection for altitude
+    Q1_alt = df_cleaned['altitude'].quantile(0.25)
+    Q3_alt = df_cleaned['altitude'].quantile(0.75)
     IQR_alt = Q3_alt - Q1_alt
     lower_bound_alt = Q1_alt - 1.5 * IQR_alt
     upper_bound_alt = Q3_alt + 1.5 * IQR_alt
-    alt_outliers = cleaned_df[(cleaned_df['altitude'] < lower_bound_alt) | (cleaned_df['altitude'] > upper_bound_alt)]
-    st.write(f"Aantal mogelijke uitbijters in hoogte: {len(alt_outliers)}")
-    if not alt_outliers.empty:
-        if st.checkbox("Toon uitbijters in hoogte"):
-            st.dataframe(alt_outliers)
+    alt_outliers = df_cleaned[(df_cleaned['altitude'] < lower_bound_alt) | (df_cleaned['altitude'] > upper_bound_alt)]
 
-    Q1_db = cleaned_df['max_db_onder'].quantile(0.25)
-    Q3_db = cleaned_df['max_db_onder'].quantile(0.75)
+    # Outlier detection for decibels
+    Q1_db = df_cleaned['max_db_onder'].quantile(0.25)
+    Q3_db = df_cleaned['max_db_onder'].quantile(0.75)
     IQR_db = Q3_db - Q1_db
     lower_bound_db = Q1_db - 1.5 * IQR_db
     upper_bound_db = Q3_db + 1.5 * IQR_db
-    db_outliers = cleaned_df[(cleaned_df['max_db_onder'] < lower_bound_db) | (cleaned_df['max_db_onder'] > upper_bound_db)]
-    st.write(f"Aantal mogelijke uitbijters in geluidsniveau: {len(db_outliers)}")
-    if not db_outliers.empty:
-        if st.checkbox("Toon uitbijters in geluidsniveau"):
-            st.dataframe(db_outliers)
+    db_outliers = df_cleaned[(df_cleaned['max_db_onder'] < lower_bound_db) | (df_cleaned['max_db_onder'] > upper_bound_db)]
 
+    # Display outliers info
+    st.write(f"Aantal mogelijke uitbijters in hoogte: {len(alt_outliers)}")
+    if len(alt_outliers) > 0 and st.checkbox("Toon uitbijters in hoogte"):
+        st.dataframe(alt_outliers)
+
+    st.write(f"Aantal mogelijke uitbijters in geluidsniveau: {len(db_outliers)}")
+    if len(db_outliers) > 0 and st.checkbox("Toon uitbijters in geluidsniveau"):
+        st.dataframe(db_outliers)
+
+    # Show boxplot for spread of data
     if st.checkbox("Toon spreiding van de data (boxplot)"):
-        fig_box = px.box(cleaned_df, y=['altitude', 'max_db_onder'],
+        fig_box = px.box(df_cleaned, y=['altitude', 'max_db_onder'],
                         labels={'value': 'Waarde', 'variable': 'Variabele'},
                         title='Spreiding van Vlieghoogte en Maximaal Geluidsniveau')
         st.plotly_chart(fig_box)
