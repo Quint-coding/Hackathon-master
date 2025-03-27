@@ -185,73 +185,67 @@ elif page == "🔊 Theoretische context":
     # Show the plot in Streamlit
     st.plotly_chart(fig)
 
+
     st.subheader("Vlucht types en hun coefficient")
 
-    # Eerst filteren we de DataFrame op basis van het aantal gegevenspunten per 'type'
+    df = pd.read_csv('Geluid per callsign.csv')
+
+    numeric_cols = ['max_db_onder', 'altitude']
+    for col in numeric_cols:
+        if df[col].dtype == 'object':
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+    df.dropna(subset=numeric_cols, inplace=True)
+
+    # Filter the DataFrame based on the number of entries per type
     filtered_df = df.groupby('type').filter(lambda x: len(x) >= 200)
 
-    def plot_seaborn_scatter_with_trendlines(df):
-        """
-        Maakt een scatterplot met trendlijnen gesplitst op 'type' met Seaborn en Matplotlib in Streamlit.
+    st.title("Scatterplot of Altitude vs. dB")
 
-        Args:
-            df (pd.DataFrame): De DataFrame met 'max_db_onder', 'altitude' en 'type' kolommen.
-        """
-        st.subheader("Scatterplot van max_db_onder tegen Altitude per Type met Trendlijnen")
+    if not filtered_df.empty:
+        fig = px.scatter(filtered_df, x='max_db_onder', y='altitude', color='type',
+                        labels={'max_db_onder': 'Max dB Onder', 'altitude': 'Altitude (m)'},
+                        title='Altitude vs. Max dB Onder by Type')
+        st.plotly_chart(fig)
+    else:
+        st.warning("Not enough data points per 'type' to display the plot after filtering.")
 
-        fig, ax = plt.subplots(figsize=(10, 6))
-        sns.lmplot(x='max_db_onder', y='altitude', data=df, hue='type', markers='o', height=6, aspect=1.5, ax=ax)
+    st.subheader("Logarithmic Fit (if applicable)")
 
-        # Bereken de richtingscoëfficiënt, start_x (snijpunt met x-as) en start_y (snijpunt met y-as)
-        legend_labels = []
-        startpunten = []
+    # Function for logarithmic fit
+    def logaritmische_functie(afstand, a, b):
+        return a + b * np.log10(afstand)
 
-        for label, group in df.groupby('type'):
-            slope, intercept, r_value, p_value, std_err = stats.linregress(group['max_db_onder'], group['altitude'])
+    unique_types = filtered_df['type'].unique()
 
-            # Controleer of slope geldig is om deling door nul te voorkomen
-            if pd.isna(slope) or slope == 0:
-                start_x = None  # Geen geldig startpunt op x-as
-                slope = 0
-            else:
-                start_x = -intercept / slope  # Bereken het snijpunt met de x-as
+    if len(unique_types) > 0:
+        for aircraft_type in unique_types:
+            group = filtered_df[filtered_df['type'] == aircraft_type].copy()
+            afstanden = group['max_db_onder']
+            decibels = group['altitude']
 
-            start_y = intercept  # Snijpunt met de y-as
+            try:
+                parameters, covariantie = curve_fit(logaritmische_functie, afstanden, decibels)
+                a, b = parameters
 
-            # Voeg toe aan de lijst met labels
-            legend_labels.append(f'{label}: Slope = {slope:.2f}, Start X = {start_x:.2f}, Start Y = {start_y:.2f}' if start_x is not None else f'{label}: Slope = {slope:.2f}, Start X = N/A, Start Y = {start_y:.2f}')
+                x_fit = np.linspace(min(afstanden), max(afstanden), 100)
+                y_fit = logaritmische_functie(x_fit, a, b)
 
-            # Voeg toe aan de dataframe lijst
-            startpunten.append({'type': label, 'slope': slope, 'start_x': start_x, 'start_y': start_y})
+                y_pred = logaritmische_functie(afstanden, a, b)
+                r2 = r2_score(decibels, y_pred)
 
-        # Maak een dataframe met de startpunten en richtingscoëfficiënten
-        startpunten_df = pd.DataFrame(startpunten)
-        st.write("Trendlijn Coëfficiënten per Type:")
-        st.dataframe(startpunten_df)
+                fig_fit = px.scatter(group, x='max_db_onder', y='altitude',
+                                    labels={'max_db_onder': 'Max dB Onder', 'altitude': 'Altitude (m)'},
+                                    title=f'Altitude vs. Max dB Onder for {aircraft_type} with Logarithmic Fit (R² = {r2:.2f})')
+                fig_fit.add_scatter(x=x_fit, y=y_fit, mode='lines', name=f'Log. Fit: y = {a:.2f} + {b:.2f} * log10(x)')
+                st.plotly_chart(fig_fit)
+                st.write(f"Logarithmic fit for {aircraft_type}: y = {a:.2f} + {b:.2f} * log10(x), R² = {r2:.2f}")
 
-        # Voeg de aangepaste legenda toe
-        ax.legend(title='Type en Coëfficiënten', labels=legend_labels, loc='upper left', fontsize=10)
-
-        # Voeg titels en labels toe
-        ax.set_title('Scatterplot van max_db_onder tegen Altitude per Type met Trendlijnen', fontsize=14)
-        ax.set_xlabel('max_db_onder', fontsize=12)
-        ax.set_ylabel('Altitude in [m]', fontsize=12)
-
-        # Stel de limieten voor de y-as in zodat deze niet onder nul gaat
-        ax.set_ylim(bottom=0)
-
-        # Toon de plot in Streamlit
-        st.pyplot(fig)
-
-    if __name__ == '__main__':
-        # Voorbeeld DataFrame (vervang dit met jouw daadwerkelijke df)
-        data = {'max_db_onder': [80] * 250 + [75] * 220 + [90] * 300 + [85] * 210,
-                'altitude': list(range(250)) + list(range(220, 440)) + list(range(300, 600)) + list(range(210, 420)),
-                'type': ['A'] * 250 + ['B'] * 220 + ['A'] * 300 + ['B'] * 210}
-        df = pd.DataFrame(data)
-
-        filtered_df = df.groupby('type').filter(lambda x: len(x) >= 200)
-        plot_seaborn_scatter_with_trendlines(filtered_df)
+            except RuntimeError:
+                st.warning(f"Could not perform logarithmic fit for {aircraft_type}.")
+            except ValueError:
+                st.warning(f"Insufficient data points for logarithmic fit for {aircraft_type}.")
+    else:
+        st.info("No aircraft types with enough data points to perform logarithmic fitting.")
 
 elif page == "🔊 Analyse vliegtuig modellen":
     st.title("Kenmerken van vliegtuigmodellen")
