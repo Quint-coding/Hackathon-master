@@ -134,8 +134,6 @@ elif page == "🔊 Theoretische context":
     df_cleaned = df_cleaned[~df_cleaned['max_db_onder'].isin([float('inf'), float('-inf')])]
     df_cleaned = df_cleaned[df_cleaned['altitude'] > 0]  # Ensure positive altitude for log
 
-    st.write("Data na opschonen:")
-    st.dataframe(df_cleaned.head()) # Display cleaned data
 
     if df_cleaned.empty:
         st.warning("Waarschuwing: De data is leeg na het opschonen. Er kan niets worden geplot.")
@@ -177,7 +175,7 @@ elif page == "🔊 Theoretische context":
                     title=f"Relatie tussen Vlieghoogte en Maximaal Geluidsniveau (R² = {r2:.2f})",
                     hover_data=['altitude', 'max_db_onder'])
 
-    # Add the fitted line to the plot
+    # Add the fitted line to the plot (AFTER adding the scatter plot)
     fig.add_trace(px.line(fit_df, x='altitude', y='max_db_onder_fit',
                         color_discrete_sequence=['red'],
                         labels={'max_db_onder_fit': f'y = {a:.2f} + {b:.2f} * log10(x)'}).data[0])
