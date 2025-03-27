@@ -175,7 +175,8 @@ elif page == "🔊 Theoretische context":
     fig = px.scatter(df_cleaned, x='altitude', y='max_db_onder',
                     labels={'altitude': 'Hoogte (meter)', 'max_db_onder': 'Max Geluidsniveau Onder (dB)'},
                     title=f"Relatie tussen Vlieghoogte en Maximaal Geluidsniveau",
-                    hover_data=['altitude', 'max_db_onder'])
+                    hover_data=['altitude', 'max_db_onder'],
+                    opacity=0.8)
 
     # Add the fitted line to the plot (AFTER adding the scatter plot)
     fig.add_trace(px.line(fit_df, x='altitude', y='max_db_onder_fit',
