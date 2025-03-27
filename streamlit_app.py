@@ -344,57 +344,32 @@ elif page == "🔊 Conclusies":
     # Genereer punten voor de vloeiende lijn
     x_fit = np.linspace(min(afstanden), max(afstanden), 100)
     y_fit = logaritmische_functie(x_fit, a, b)
+    fit_df = pd.DataFrame({'altitude': x_fit, 'max_db_onder_fit': y_fit})
 
     # Bereken de R²-waarde
     y_pred = logaritmische_functie(afstanden, a, b)
     r2 = r2_score(decibels, y_pred)
 
-    # Create plot with improved aesthetics
-    fig, ax = plt.subplots(figsize=(10, 6)) # Adjust figure size
-    scatter = ax.scatter(afstanden, decibels, alpha=0.6, label=f"Alle vluchten (R² = {r2:.2f})")
-    line = ax.plot(x_fit, y_fit, color="red", linewidth=2, label=f"y= {a:.2f} + {b:.2f} * log10(x)")
-    ax.set_xlabel("Hoogte (meter)", fontsize=12) # More descriptive label
-    ax.set_ylabel("Max Geluidsniveau Onder (dB)", fontsize=12) # More descriptive label
-    ax.set_title("Relatie tussen Vlieghoogte en Maximaal Geluidsniveau", fontsize=14)
-    ax.grid(True, linestyle='--', alpha=0.7) # Add a grid
-    ax.legend(fontsize=10)
-    ax.tick_params(axis='both', which='major', labelsize=10) # Improve tick label size
+    # Create scatter plot with Plotly Express
+    fig_scatter = px.scatter(cleaned_df, x='altitude', y='max_db_onder',
+                            labels={'altitude': 'Hoogte (meter)',
+                                    'max_db_onder': 'Max Geluidsniveau Onder (dB)'},
+                            title=f"Relatie tussen Vlieghoogte en Maximaal Geluidsniveau (R² = {r2:.2f})",
+                            hover_data=['altitude', 'max_db_onder'])
 
-    # Add tooltips on hover (requires enabling interactivity in Streamlit if not default)
-    annot = ax.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",
-                        bbox=dict(boxstyle="round,pad=0.3", fc="yellow", alpha=0.8),
-                        arrowprops=dict(arrowstyle="->"))
-    annot.set_visible(False)
+    # Add the fitted line
+    fig_scatter.add_trace(px.line(fit_df, x='altitude', y='max_db_onder_fit',
+                                color_discrete_sequence=['red'],
+                                labels={'max_db_onder_fit': f'y= {a:.2f} + {b:.2f} * log10(x)'}).data[0])
 
-    def update_annot(ind):
-        pos = scatter.get_offsets()[ind["ind"][0]]
-        annot.xy = pos
-        altitude = afstanden.iloc[ind["ind"][0]]
-        db = decibels.iloc[ind["ind"][0]]
-        text = f"Hoogte: {altitude:.2f}m, Geluid: {db:.2f}dB"
-        annot.set_text(text)
-        annot.get_bbox_patch().set_alpha(0.4)
+    # Update layout for better appearance
+    fig_scatter.update_layout(legend_title_text='Data')
 
-    def hover(event):
-        vis = annot.get_visible()
-        if event.inaxes == ax:
-            cont, ind = scatter.contains(event)
-            if cont:
-                update_annot(ind)
-                annot.set_visible(True)
-                fig.canvas.draw_idle()
-            else:
-                if vis:
-                    annot.set_visible(False)
-                    fig.canvas.draw_idle()
-
-    fig.canvas.mpl_connect("motion_notify_event", hover)
-
-    # Use Streamlit to display the plot
-    st.pyplot(fig)
+    # Display the plot in Streamlit
+    st.plotly_chart(fig_scatter)
 
     # Display the results in Streamlit
-    st.write(f"De aangepaste formule is: decibel = {a:.2f} + {b:.2f} * log10(hoogte)") # More descriptive
+    st.write(f"De aangepaste formule is: decibel = {a:.2f} + {b:.2f} * log10(hoogte)")
     st.write(f"R²-waarde: {r2:.2f}")
 
     # --- Additional Analysis (Optional) ---
@@ -424,9 +399,7 @@ elif page == "🔊 Conclusies":
             st.dataframe(db_outliers)
 
     if st.checkbox("Toon spreiding van de data (boxplot)"):
-        fig_box, ax_box = plt.subplots(1, 2, figsize=(12, 5))
-        ax_box[0].boxplot(cleaned_df['altitude'], labels=['Hoogte'])
-        ax_box[0].set_title('Spreiding van Vlieghoogte')
-        ax_box[1].boxplot(cleaned_df['max_db_onder'], labels=['Geluidsniveau'])
-        ax_box[1].set_title('Spreiding van Maximaal Geluidsniveau')
-        st.pyplot(fig_box)
+        fig_box = px.box(cleaned_df, y=['altitude', 'max_db_onder'],
+                        labels={'value': 'Waarde', 'variable': 'Variabele'},
+                        title='Spreiding van Vlieghoogte en Maximaal Geluidsniveau')
+        st.plotly_chart(fig_box)
