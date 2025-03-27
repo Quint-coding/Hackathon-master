@@ -220,6 +220,9 @@ elif page == "🔊 Theoretische context":
 
         # Toon de plot in Streamlit
         st.plotly_chart(fig)
+    
+
+    plot_scatter_with_trendlines_plotly(df)
 
 
 elif page == "🔊 Analyse vliegtuig modellen":
