@@ -128,6 +128,68 @@ elif page == "🔊 Theoretische context":
     st.write("""Gebruik is gemaakt van de inverse square law om per vliegtuig model een coëfficient te berekenen dat weergeeft hoe luid een vligtuig direct onder zich is.""")
 
 
+    df = pd.read_csv('Geluid per callsign.csv')
+    # Verwijder ongeldige waarden (NaN, oneindige waarden, en negatieve hoogtes)
+    df_cleaned = df.dropna(subset=['max_db_onder', 'altitude'])
+    df_cleaned = df_cleaned[~df_cleaned['max_db_onder'].isin([float('inf'), float('-inf')])]
+    df_cleaned = df_cleaned[df_cleaned['altitude'] > 0]  # Ensure positive altitude for log
+
+    st.write("Data na opschonen:")
+    st.dataframe(df_cleaned.head()) # Display cleaned data
+
+    if df_cleaned.empty:
+        st.warning("Waarschuwing: De data is leeg na het opschonen. Er kan niets worden geplot.")
+        st.stop()
+
+    # Sorteer de DataFrame op 'altitude' (goede praktijk voor visualisatie)
+    df_cleaned = df_cleaned.sort_values(by='altitude')
+
+    # Gegeven data
+    afstanden = df_cleaned['altitude']
+    decibels = df_cleaned['max_db_onder']
+
+    # Logarithmic function for fitting
+    def logaritmische_functie(afstand, a, b):
+        return a + b * np.log10(afstand)
+
+    # Fit the data to the logarithmic function
+    try:
+        parameters, _ = curve_fit(logaritmische_functie, afstanden, decibels, p0=[90, -10])  # Initial guesses
+        a, b = parameters
+        st.write(f"Fit parameters: a = {a:.2f}, b = {b:.2f}") # Display fitted parameters
+    except RuntimeError as e:
+        st.error(f"Optimalisatie is mislukt: {e}. Controleer de data of probeer andere startwaarden.")
+        st.stop()
+
+    # Genereer lijn voor de fitting
+    x_fit = np.linspace(min(afstanden), max(afstanden), 100)
+    y_fit = logaritmische_functie(x_fit, a, b)
+    fit_df = pd.DataFrame({'altitude': x_fit, 'max_db_onder_fit': y_fit}) # Create DataFrame for fit line
+
+    # Bereken de R²-waarde
+    y_pred = logaritmische_functie(afstanden, a, b)
+    r2 = r2_score(decibels, y_pred)
+    st.write(f"R²-waarde: {r2:.2f}")
+
+    # Create a scatter plot with Plotly
+    fig = px.scatter(df_cleaned, x='altitude', y='max_db_onder',
+                    labels={'altitude': 'Hoogte (meter)', 'max_db_onder': 'Max Geluidsniveau Onder (dB)'},
+                    title=f"Relatie tussen Vlieghoogte en Maximaal Geluidsniveau (R² = {r2:.2f})",
+                    hover_data=['altitude', 'max_db_onder'])
+
+    # Add the fitted line to the plot
+    fig.add_trace(px.line(fit_df, x='altitude', y='max_db_onder_fit',
+                        color_discrete_sequence=['red'],
+                        labels={'max_db_onder_fit': f'y = {a:.2f} + {b:.2f} * log10(x)'}).data[0])
+
+    # Show the plot in Streamlit
+    st.plotly_chart(fig)
+
+    # Display the results in Streamlit
+    st.write(f"De aangepaste formule is: decibel = {a:.2f} + {b:.2f} * log10(hoogte)")
+    st.write(f"R²-waarde: {r2:.2f}")
+
+
 elif page == "🔊 Analyse vliegtuig modellen":
     st.title("Kenmerken van vliegtuigmodellen")
     st.subheader("Hier zullen wij a.d.h.v. meerdere grafieken 4 vliegtuigmodellen vergelijken")
@@ -316,61 +378,4 @@ elif page == "🔊 Conclusies":
 
     st.write("De Boeing 777 is een schreeuwer")
 
-    df = pd.read_csv('Geluid per callsign.csv')
-    # Verwijder ongeldige waarden (NaN, oneindige waarden, en negatieve hoogtes)
-    df_cleaned = df.dropna(subset=['max_db_onder', 'altitude'])
-    df_cleaned = df_cleaned[~df_cleaned['max_db_onder'].isin([float('inf'), float('-inf')])]
-    df_cleaned = df_cleaned[df_cleaned['altitude'] > 0]  # Ensure positive altitude for log
 
-    st.write("Data na opschonen:")
-    st.dataframe(df_cleaned.head()) # Display cleaned data
-
-    if df_cleaned.empty:
-        st.warning("Waarschuwing: De data is leeg na het opschonen. Er kan niets worden geplot.")
-        st.stop()
-
-    # Sorteer de DataFrame op 'altitude' (goede praktijk voor visualisatie)
-    df_cleaned = df_cleaned.sort_values(by='altitude')
-
-    # Gegeven data
-    afstanden = df_cleaned['altitude']
-    decibels = df_cleaned['max_db_onder']
-
-    # Logarithmic function for fitting
-    def logaritmische_functie(afstand, a, b):
-        return a + b * np.log10(afstand)
-
-    # Fit the data to the logarithmic function
-    try:
-        parameters, _ = curve_fit(logaritmische_functie, afstanden, decibels, p0=[90, -10])  # Initial guesses
-        a, b = parameters
-        st.write(f"Fit parameters: a = {a:.2f}, b = {b:.2f}") # Display fitted parameters
-    except RuntimeError as e:
-        st.error(f"Optimalisatie is mislukt: {e}. Controleer de data of probeer andere startwaarden.")
-        st.stop()
-
-    # Genereer lijn voor de fitting
-    x_fit = np.linspace(min(afstanden), max(afstanden), 100)
-    y_fit = logaritmische_functie(x_fit, a, b)
-    fit_df = pd.DataFrame({'altitude': x_fit, 'max_db_onder_fit': y_fit}) # Create DataFrame for fit line
-
-    # Bereken de R²-waarde
-    y_pred = logaritmische_functie(afstanden, a, b)
-    r2 = r2_score(decibels, y_pred)
-    st.write(f"R²-waarde: {r2:.2f}")
-
-    # Create a scatter plot with Plotly
-    fig = px.scatter(df_cleaned, x='altitude', y='max_db_onder',
-                    labels={'altitude': 'Hoogte (meter)', 'max_db_onder': 'Max Geluidsniveau Onder (dB)'},
-                    title=f"Relatie tussen Vlieghoogte en Maximaal Geluidsniveau (R² = {r2:.2f})",
-                    hover_data=['altitude', 'max_db_onder'])
-
-    # Add the fitted line to the plot
-    fig.add_trace(px.scatter(x=fit_df['altitude'], y=fit_df['max_db_onder_fit']))
-
-    # Show the plot in Streamlit
-    st.plotly_chart(fig)
-
-    # Display the results in Streamlit
-    st.write(f"De aangepaste formule is: decibel = {a:.2f} + {b:.2f} * log10(hoogte)")
-    st.write(f"R²-waarde: {r2:.2f}")
