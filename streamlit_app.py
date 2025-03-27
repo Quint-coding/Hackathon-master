@@ -364,38 +364,3 @@ elif page == "🔊 Conclusies":
     # Display the results in Streamlit
     st.write(f"De aangepaste formule is: decibel = {a:.2f} + {b:.2f} * log10(hoogte)")
     st.write(f"R²-waarde: {r2:.2f}")
-
-    # Extra Analyse (Optionally check for outliers)
-    st.subheader("Extra Analyse (Optioneel)")
-
-    # Outlier detection for altitude
-    Q1_alt = df_cleaned['altitude'].quantile(0.25)
-    Q3_alt = df_cleaned['altitude'].quantile(0.75)
-    IQR_alt = Q3_alt - Q1_alt
-    lower_bound_alt = Q1_alt - 1.5 * IQR_alt
-    upper_bound_alt = Q3_alt + 1.5 * IQR_alt
-    alt_outliers = df_cleaned[(df_cleaned['altitude'] < lower_bound_alt) | (df_cleaned['altitude'] > upper_bound_alt)]
-
-    # Outlier detection for decibels
-    Q1_db = df_cleaned['max_db_onder'].quantile(0.25)
-    Q3_db = df_cleaned['max_db_onder'].quantile(0.75)
-    IQR_db = Q3_db - Q1_db
-    lower_bound_db = Q1_db - 1.5 * IQR_db
-    upper_bound_db = Q3_db + 1.5 * IQR_db
-    db_outliers = df_cleaned[(df_cleaned['max_db_onder'] < lower_bound_db) | (df_cleaned['max_db_onder'] > upper_bound_db)]
-
-    # Display outliers info
-    st.write(f"Aantal mogelijke uitbijters in hoogte: {len(alt_outliers)}")
-    if len(alt_outliers) > 0 and st.checkbox("Toon uitbijters in hoogte"):
-        st.dataframe(alt_outliers)
-
-    st.write(f"Aantal mogelijke uitbijters in geluidsniveau: {len(db_outliers)}")
-    if len(db_outliers) > 0 and st.checkbox("Toon uitbijters in geluidsniveau"):
-        st.dataframe(db_outliers)
-
-    # Show boxplot for spread of data
-    if st.checkbox("Toon spreiding van de data (boxplot)"):
-        fig_box = px.box(df_cleaned, y=['altitude', 'max_db_onder'],
-                        labels={'value': 'Waarde', 'variable': 'Variabele'},
-                        title='Spreiding van Vlieghoogte en Maximaal Geluidsniveau')
-        st.plotly_chart(fig_box)
