@@ -4,6 +4,7 @@ import numpy as np
 import pydeck as pdk
 import matplotlib.pyplot as plt
 import plotly.express as px
+import seaborn as sns
 from scipy.optimize import curve_fit
 from scipy import stats
 from sklearn.metrics import r2_score
@@ -189,64 +190,68 @@ elif page == "🔊 Theoretische context":
     # Eerst filteren we de DataFrame op basis van het aantal gegevenspunten per 'type'
     filtered_df = df.groupby('type').filter(lambda x: len(x) >= 200)
 
-    def plot_scatter_with_trendlines_plotly(df_to_plot):
+    def plot_seaborn_scatter_with_trendlines(df):
         """
-        Maakt een scatterplot met trendlijnen gesplitst op 'type' met Plotly Express in Streamlit,
-        met aangepaste x- en y-aslimieten.
+        Maakt een scatterplot met trendlijnen gesplitst op 'type' met Seaborn en Matplotlib in Streamlit.
 
         Args:
-            df_to_plot (pd.DataFrame): De DataFrame met 'max_db_onder', 'altitude' en 'type' kolommen.
+            df (pd.DataFrame): De DataFrame met 'max_db_onder', 'altitude' en 'type' kolommen.
         """
         st.subheader("Scatterplot van max_db_onder tegen Altitude per Type met Trendlijnen")
 
-        fig = px.scatter(df_to_plot, x='max_db_onder', y='altitude', color='type',
-                        labels={'max_db_onder': 'max_db_onder', 'altitude': 'Altitude in [m]'},
-                        title='Scatterplot van max_db_onder tegen Altitude per Type met Trendlijnen',
-                        hover_data=['type'])
+        fig, ax = plt.subplots(figsize=(10, 6))
+        sns.lmplot(x='max_db_onder', y='altitude', data=df, hue='type', markers='o', height=6, aspect=1.5, ax=ax)
 
-        # Bereken en voeg trendlijnen toe
-        for type_val in df_to_plot['type'].unique():
-            subset_df = df_to_plot[df_to_plot['type'] == type_val]
-            if not subset_df.empty:
-                slope, intercept, r_value, p_value, std_err = stats.linregress(subset_df['max_db_onder'], subset_df['altitude'])
-                x_range = [subset_df['max_db_onder'].min(), subset_df['max_db_onder'].max()]
-                y_trend = [intercept + slope * x for x in x_range]
-                fig.add_scatter(x=x_range, y=y_trend, mode='lines',
-                                name=f'{type_val} (Trend)', line=dict(dash='dash'))
+        # Bereken de richtingscoëfficiënt, start_x (snijpunt met x-as) en start_y (snijpunt met y-as)
+        legend_labels = []
+        startpunten = []
 
-                st.write(f"Trendlijn Coëfficiënten voor {type_val}:")
-                st.write(f"  Slope: {slope:.2f}")
-                st.write(f"  Intercept: {intercept:.2f}")
+        for label, group in df.groupby('type'):
+            slope, intercept, r_value, p_value, std_err = stats.linregress(group['max_db_onder'], group['altitude'])
 
-        # Update layout voor betere leesbaarheid en aangepaste aslimieten
-        fig.update_layout(
-            legend_title_text='Type',
-            yaxis=dict(rangemode="tozero", range=[0, 3000]),  # Y-as van 0 tot 3000
-            xaxis=dict(range=[0, 160])                       # X-as van 0 tot 160
-        )
+            # Controleer of slope geldig is om deling door nul te voorkomen
+            if pd.isna(slope) or slope == 0:
+                start_x = None  # Geen geldig startpunt op x-as
+                slope = 0
+            else:
+                start_x = -intercept / slope  # Bereken het snijpunt met de x-as
+
+            start_y = intercept  # Snijpunt met de y-as
+
+            # Voeg toe aan de lijst met labels
+            legend_labels.append(f'{label}: Slope = {slope:.2f}, Start X = {start_x:.2f}, Start Y = {start_y:.2f}' if start_x is not None else f'{label}: Slope = {slope:.2f}, Start X = N/A, Start Y = {start_y:.2f}')
+
+            # Voeg toe aan de dataframe lijst
+            startpunten.append({'type': label, 'slope': slope, 'start_x': start_x, 'start_y': start_y})
+
+        # Maak een dataframe met de startpunten en richtingscoëfficiënten
+        startpunten_df = pd.DataFrame(startpunten)
+        st.write("Trendlijn Coëfficiënten per Type:")
+        st.dataframe(startpunten_df)
+
+        # Voeg de aangepaste legenda toe
+        ax.legend(title='Type en Coëfficiënten', labels=legend_labels, loc='upper left', fontsize=10)
+
+        # Voeg titels en labels toe
+        ax.set_title('Scatterplot van max_db_onder tegen Altitude per Type met Trendlijnen', fontsize=14)
+        ax.set_xlabel('max_db_onder', fontsize=12)
+        ax.set_ylabel('Altitude in [m]', fontsize=12)
+
+        # Stel de limieten voor de y-as in zodat deze niet onder nul gaat
+        ax.set_ylim(bottom=0)
 
         # Toon de plot in Streamlit
-        st.plotly_chart(fig)
+        st.pyplot(fig)
 
     if __name__ == '__main__':
         # Voorbeeld DataFrame (vervang dit met jouw daadwerkelijke df)
-        data = {'max_db_onder': [80] * 250 + [70] * 150 + [90] * 300 + [60, 100, 75, 85, 65, 95],
-                'altitude': list(range(250)) + list(range(150, 300)) + list(range(300, 600)) + [2000, 50, 700, 2500, 10, 550],
-                'type': ['A'] * 250 + ['B'] * 150 + ['A'] * 300 + ['A', 'B', 'A', 'B', 'A', 'B']}
+        data = {'max_db_onder': [80] * 250 + [75] * 220 + [90] * 300 + [85] * 210,
+                'altitude': list(range(250)) + list(range(220, 440)) + list(range(300, 600)) + list(range(210, 420)),
+                'type': ['A'] * 250 + ['B'] * 220 + ['A'] * 300 + ['B'] * 210}
         df = pd.DataFrame(data)
 
-        filtered_df_by_count = df.groupby('type').filter(lambda x: len(x) >= 100) # Adjust count as needed
-        plot_scatter_with_trendlines_plotly(filtered_df_by_count)
-
-    if __name__ == '__main__':
-        # Voorbeeld DataFrame (vervang dit met jouw daadwerkelijke df)
-        data = {'max_db_onder': [80] * 250 + [70] * 150 + [90] * 300 + [60, 100, 75, 85, 65, 95],
-                'altitude': list(range(250)) + list(range(150, 300)) + list(range(300, 600)) + [2000, -50, 700, 2500, 10, 3500],
-                'type': ['A'] * 250 + ['B'] * 150 + ['A'] * 300 + ['A', 'B', 'A', 'B', 'A', 'B']}
-        df = pd.DataFrame(data)
-
-        filtered_df_by_count = df.groupby('type').filter(lambda x: len(x) >= 100) # Adjust count as needed
-        plot_scatter_with_trendlines_plotly(filtered_df_by_count)
+        filtered_df = df.groupby('type').filter(lambda x: len(x) >= 200)
+        plot_seaborn_scatter_with_trendlines(filtered_df)
 
 elif page == "🔊 Analyse vliegtuig modellen":
     st.title("Kenmerken van vliegtuigmodellen")
