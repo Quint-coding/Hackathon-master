@@ -138,16 +138,10 @@ elif page == "🔊 Geoplot geluidoverlast":
     df_full, vlucht_types, vluchten_all, dagen = load_and_process_data()
 
     # Streamlit interface - Keuze tussen Aankomst of Vertrek
-    selected_day = st.radio("Selecteer dag:", dagen)
-    
-    # Filter de dataset op basis van gekozen dag
-    df_filtered_by_day = df_full[df_full['Day'] == selected_day].copy()
-
-    # Streamlit interface - Keuze tussen Aankomst of Vertrek
     selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
 
     # Filter de dataset op basis van vluchtsoort
-    df_filtered_by_type = df_filtered_by_day[df_filtered_by_day['FlightType'] == selected_type].copy()
+    df_filtered_by_type = df_full[df_full['FlightType'] == selected_type].copy()
 
     # Keuze tussen slider en multiselect
     selection_mode = st.radio("Selecteer weergavemodus:", ["Slider (willekeurige subset)", "Multiselect (specifieke vluchten)"])
