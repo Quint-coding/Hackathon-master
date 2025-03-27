@@ -36,7 +36,7 @@ st.sidebar.title("📍 Navigatie")
 page = st.sidebar.radio("Ga naar", ["🔊 Home", 
                                     "🔊 Theoretische context", 
                                     "🔊 Geoplot geluidoverlast", 
-                                    "🔊 pagina 3"])
+                                    "🔊 Analyse vliegtuig modellen"])
 
 
 @st.cache_data
@@ -122,6 +122,45 @@ elif page == "🔊 Theoretische context":
 
     st.write("""Gebruik is gemaakt van de inverse square law om per vliegtuig model een coëfficient te berekenen dat weergeeft hoe luid een vligtuig direct onder zich is.""")
 
+
+elif page == "🔊 Analyse vliegtuig modellen":
+    st.title("Kenmerken van vliegtuigmodellen")
+    st.subheader("Hier zullen wij a.d.h.v. meerdere grafieken 4 vliegtuigmodellen vergelijken")
+
+    st.write("""Er is gekozen voor 4 vliegtuigmodellen op basis van de natuurkundige analyse die hiervoor is verricht.
+             Deze 4 modellen kwamen het meest voor en gaven daardoor een betrouwbaar beeld bij hun geluidsoverlast.""")
+
+    plane_specs = pd.read_csv('plane_specs_zonder_fouten.csv')
+
+    fig1 = px.bar(plane_specs, 'type', 'seats', color='type', title='Passagierscapaciteit per vliegtuigmodel')
+
+    fig2 = px.bar(plane_specs, 'max_takeoff_weight_t', 'type', color='type', title='Startgewicht (\'massa rijklaar\' in autotermen) per vliegtuigmodel')
+
+    fig3 = px.bar(plane_specs, 'type', 'range_km', color='type', title='Actieradius per vliegtuigmodel')
+
+    fig4 = px.bar(plane_specs, 'seats', 'range_km', color='type', title='Actieradius per passagierscapaciteit')
+
+    fig5 = px.bar(plane_specs, 'max_takeoff_weight_t', 'range_km', color='type', title='Actieradius per startgewicht (\'massa rijklaar\' in autotermen)')
+
+    fig6 = px.bar(plane_specs, 'empty_weight_t', 'range_km', color='type', title='Actieradius per leeggewicht (\'massa ledig voertuig\' in autotermen)')
+
+    fig7 = px.bar(plane_specs, 'wingspan_m', 'range_km', color='type', title=('Actieradius per spanwijdte'))
+
+    # fig4 = px.bar(plane_specs, 'seats', 'ceiling_m', color='type', title='Dienstplafond per passagierscapaciteit')
+
+    # fig5 = px.bar(plane_specs, 'max_takeoff_weight_t', 'ceiling_m', color='type', title='Dienstplafond per startgewicht (\'massa rijklaar\' in autotermen)')
+
+    # fig6 = px.bar(plane_specs, 'empty_weight_t', 'ceiling_m', color='type', title='Dienstplafond per leeggewicht (\'massa ledig voertuig\' in autotermen)')
+
+
+
+    st.plotly_chart(fig1)
+    st.plotly_chart(fig2)
+    st.plotly_chart(fig3)
+    st.plotly_chart(fig4)
+    st.plotly_chart(fig5)
+    st.plotly_chart(fig6)
+    st.plotly_chart(fig7)
 
 elif page == "🔊 Geoplot geluidoverlast":
     st.title("Geoplot geluidoverlast")
@@ -244,41 +283,3 @@ elif page == "🔊 Geoplot geluidoverlast":
 
     # Toon de kaart in Streamlit
     st.pydeck_chart(deck)
-
-elif page == "🔊 pagina 3":
-    st.title("Geluid overlast")
-    st.subheader("Welkom bij ons schiphol dashboard over geluid overlast")
-
-    st.write("""bonjour""")
-
-    plane_specs = pd.read_csv('plane_specs_zonder_fouten.csv')
-
-    fig1 = px.bar(plane_specs, 'type', 'seats', color='type', title='Passagierscapaciteit per vliegtuigmodel')
-
-    fig2 = px.bar(plane_specs, 'max_takeoff_weight_t', 'type', color='type', title='Startgewicht (\'massa rijklaar\' in autotermen) per vliegtuigmodel')
-
-    fig3 = px.bar(plane_specs, 'type', 'range_km', color='type', title='Actieradius per vliegtuigmodel')
-
-    fig4 = px.bar(plane_specs, 'seats', 'range_km', color='type', title='Actieradius per passagierscapaciteit')
-
-    fig5 = px.bar(plane_specs, 'max_takeoff_weight_t', 'range_km', color='type', title='Actieradius per startgewicht (\'massa rijklaar\' in autotermen)')
-
-    fig6 = px.bar(plane_specs, 'empty_weight_t', 'range_km', color='type', title='Actieradius per leeggewicht (\'massa ledig voertuig\' in autotermen)')
-
-    fig7 = px.bar(plane_specs, 'wingspan_m', 'range_km', color='type', title=('Actieradius per spanwijdte'))
-
-    # fig4 = px.bar(plane_specs, 'seats', 'ceiling_m', color='type', title='Dienstplafond per passagierscapaciteit')
-
-    # fig5 = px.bar(plane_specs, 'max_takeoff_weight_t', 'ceiling_m', color='type', title='Dienstplafond per startgewicht (\'massa rijklaar\' in autotermen)')
-
-    # fig6 = px.bar(plane_specs, 'empty_weight_t', 'ceiling_m', color='type', title='Dienstplafond per leeggewicht (\'massa ledig voertuig\' in autotermen)')
-
-
-
-    st.plotly_chart(fig1)
-    st.plotly_chart(fig2)
-    st.plotly_chart(fig3)
-    st.plotly_chart(fig4)
-    st.plotly_chart(fig5)
-    st.plotly_chart(fig6)
-    st.plotly_chart(fig7)
