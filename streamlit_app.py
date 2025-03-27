@@ -190,6 +190,7 @@ elif page == "🔊 Theoretische context":
 
     df = pd.read_csv('Geluid per callsign.csv')
 
+    # Convert relevant columns to numeric if they aren't already
     numeric_cols = ['max_db_onder', 'altitude']
     for col in numeric_cols:
         if df[col].dtype == 'object':
@@ -199,25 +200,20 @@ elif page == "🔊 Theoretische context":
     # Filter the DataFrame based on the number of entries per type
     filtered_df = df.groupby('type').filter(lambda x: len(x) >= 200)
 
-    st.title("Scatterplot of Altitude vs. dB")
+    st.title("Scatterplot of Altitude vs. dB with Logarithmic Fits")
 
     if not filtered_df.empty:
         fig = px.scatter(filtered_df, x='max_db_onder', y='altitude', color='type',
                         labels={'max_db_onder': 'Max dB Onder', 'altitude': 'Altitude (m)'},
-                        title='Altitude vs. Max dB Onder by Type')
-        st.plotly_chart(fig)
-    else:
-        st.warning("Not enough data points per 'type' to display the plot after filtering.")
+                        title='Altitude vs. Max dB Onder by Type with Logarithmic Fits')
 
-    st.subheader("Logarithmic Fit (if applicable)")
+        # Function for logarithmic fit
+        def logaritmische_functie(afstand, a, b):
+            return a + b * np.log10(afstand)
 
-    # Function for logarithmic fit
-    def logaritmische_functie(afstand, a, b):
-        return a + b * np.log10(afstand)
+        unique_types = filtered_df['type'].unique()
+        fit_equations = {}
 
-    unique_types = filtered_df['type'].unique()
-
-    if len(unique_types) > 0:
         for aircraft_type in unique_types:
             group = filtered_df[filtered_df['type'] == aircraft_type].copy()
             afstanden = group['max_db_onder']
@@ -230,22 +226,23 @@ elif page == "🔊 Theoretische context":
                 x_fit = np.linspace(min(afstanden), max(afstanden), 100)
                 y_fit = logaritmische_functie(x_fit, a, b)
 
-                y_pred = logaritmische_functie(afstanden, a, b)
-                r2 = r2_score(decibels, y_pred)
+                r2 = r2_score(decibels, logaritmische_functie(afstanden, a, b))
+                fit_equations[aircraft_type] = f"y = {a:.2f} + {b:.2f} * log10(x) (R² = {r2:.2f})"
 
-                fig_fit = px.scatter(group, x='max_db_onder', y='altitude',
-                                    labels={'max_db_onder': 'Max dB Onder', 'altitude': 'Altitude (m)'},
-                                    title=f'Altitude vs. Max dB Onder for {aircraft_type} with Logarithmic Fit (R² = {r2:.2f})')
-                fig_fit.add_scatter(x=x_fit, y=y_fit, mode='lines', name=f'Log. Fit: y = {a:.2f} + {b:.2f} * log10(x)')
-                st.plotly_chart(fig_fit)
-                st.write(f"Logarithmic fit for {aircraft_type}: y = {a:.2f} + {b:.2f} * log10(x), R² = {r2:.2f}")
+                fig.add_scatter(x=x_fit, y=y_fit, mode='lines', name=f'{aircraft_type} Fit')
 
-            except RuntimeError:
+            except (RuntimeError, ValueError):
                 st.warning(f"Could not perform logarithmic fit for {aircraft_type}.")
-            except ValueError:
-                st.warning(f"Insufficient data points for logarithmic fit for {aircraft_type}.")
+                fit_equations[aircraft_type] = "Fit failed"
+
+        st.plotly_chart(fig)
+
+        st.subheader("Logarithmic Fit Equations:")
+        for aircraft_type, equation in fit_equations.items():
+            st.write(f"{aircraft_type}: {equation}")
+
     else:
-        st.info("No aircraft types with enough data points to perform logarithmic fitting.")
+        st.warning("Not enough data points per 'type' to display the plot after filtering.")
 
 elif page == "🔊 Analyse vliegtuig modellen":
     st.title("Kenmerken van vliegtuigmodellen")
