@@ -172,7 +172,7 @@ elif page == "🔊 Theoretische context":
     # Create a scatter plot with Plotly
     fig = px.scatter(df_cleaned, x='altitude', y='max_db_onder',
                     labels={'altitude': 'Hoogte (meter)', 'max_db_onder': 'Max Geluidsniveau Onder (dB)'},
-                    title=f"Relatie tussen Vlieghoogte en Maximaal Geluidsniveau (R² = {r2:.2f})",
+                    title=f"Relatie tussen Vlieghoogte en Maximaal Geluidsniveau",
                     hover_data=['altitude', 'max_db_onder'])
 
     # Add the fitted line to the plot (AFTER adding the scatter plot)
@@ -183,9 +183,43 @@ elif page == "🔊 Theoretische context":
     # Show the plot in Streamlit
     st.plotly_chart(fig)
 
-    # Display the results in Streamlit
-    st.write(f"De aangepaste formule is: decibel = {a:.2f} + {b:.2f} * log10(hoogte)")
-    st.write(f"R²-waarde: {r2:.2f}")
+
+    def plot_scatter_with_trendlines_plotly(df):
+        """
+        Maakt een scatterplot met trendlijnen gesplitst op 'type' met Plotly Express in Streamlit.
+
+        Args:
+            df (pd.DataFrame): De DataFrame met 'max_db_onder', 'altitude' en 'type' kolommen.
+        """
+        st.subheader("Scatterplot van max_db_onder tegen Altitude per Type met Trendlijnen")
+
+        fig = px.scatter(df, x='max_db_onder', y='altitude', color='type',
+                        labels={'max_db_onder': 'max_db_onder', 'altitude': 'Altitude in [m]'},
+                        title='Scatterplot van max_db_onder tegen Altitude per Type met Trendlijnen',
+                        hover_data=['type'])
+
+        # Bereken en voeg trendlijnen toe
+        for type_val in df['type'].unique():
+            subset_df = df[df['type'] == type_val]
+            if not subset_df.empty:
+                slope, intercept, r_value, p_value, std_err = stats.linregress(subset_df['max_db_onder'], subset_df['altitude'])
+                x_range = [subset_df['max_db_onder'].min(), subset_df['max_db_onder'].max()]
+                y_trend = [intercept + slope * x for x in x_range]
+                fig.add_scatter(x=x_range, y=y_trend, mode='lines',
+                                name=f'{type_val} (Trend)', line=dict(dash='dash'))
+
+                st.write(f"Trendlijn Coëfficiënten voor {type_val}:")
+                st.write(f"  Slope: {slope:.2f}")
+                st.write(f"  Intercept: {intercept:.2f}")
+
+        # Update layout voor betere leesbaarheid
+        fig.update_layout(legend_title_text='Type')
+
+        # Stel de limieten voor de y-as in zodat deze niet onder nul gaat
+        fig.update_layout(yaxis=dict(rangemode="tozero"))
+
+        # Toon de plot in Streamlit
+        st.plotly_chart(fig)
 
 
 elif page == "🔊 Analyse vliegtuig modellen":
@@ -375,5 +409,3 @@ elif page == "🔊 Geoplot geluidoverlast":
 elif page == "🔊 Conclusies":
 
     st.write("De Boeing 777 is een schreeuwer")
-
-
