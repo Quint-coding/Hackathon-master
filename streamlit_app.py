@@ -366,7 +366,7 @@ elif page == "🔊 Conclusies":
                     hover_data=['altitude', 'max_db_onder'])
 
     # Add the fitted line to the plot
-    fig.add_trace(px.scatter(x=fit_df['altitude'], y=fit_df['max_db_onder_fit'], name=f'y = {a:.2f} + {b:.2f} * log10(x)', line=dict(color='red')))
+    fig.add_trace(px.scatter(x=fit_df['altitude'], y=fit_df['max_db_onder_fit']))
 
     # Show the plot in Streamlit
     st.plotly_chart(fig)
