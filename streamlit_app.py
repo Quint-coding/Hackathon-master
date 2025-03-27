@@ -121,6 +121,8 @@ if page == "🔊 Home":
     - Quint Klaassen
     """)
 
+
+    st.image("Schiphol-plaza-ns.jpg")
     
 
 elif page == "🔊 Theoretische context":
