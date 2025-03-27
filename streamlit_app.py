@@ -36,7 +36,8 @@ st.sidebar.title("📍 Navigatie")
 page = st.sidebar.radio("Ga naar", ["🔊 Home", 
                                     "🔊 Theoretische context", 
                                     "🔊 Analyse vliegtuig modellen",
-                                    "🔊 Geoplot geluidoverlast"
+                                    "🔊 Geoplot geluidoverlast",
+                                    "🔊 Conclusies"
                                     ])
 
 
@@ -306,3 +307,8 @@ elif page == "🔊 Geoplot geluidoverlast":
  
     # Toon de kaart in Streamlit
     st.pydeck_chart(deck)
+
+
+elif page == "🔊 Conclusies":
+
+    st.write("De Boeing 777 is een schreeuwer")
