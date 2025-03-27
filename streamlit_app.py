@@ -198,7 +198,7 @@ elif page == "🔊 Theoretische context":
     df.dropna(subset=numeric_cols, inplace=True)
 
     # Filter the DataFrame based on the number of entries per type
-    filtered_df = df.groupby('type').filter(lambda x: len(x) >= 200)
+    filtered_df = df.groupby('type').filter(lambda x: len(x) >= 100) # Reduced for example data
 
     st.title("Scatterplot of Altitude vs. dB with Logarithmic Fits")
 
@@ -234,6 +234,9 @@ elif page == "🔊 Theoretische context":
             except (RuntimeError, ValueError):
                 st.warning(f"Could not perform logarithmic fit for {aircraft_type}.")
                 fit_equations[aircraft_type] = "Fit failed"
+
+        # Limit the y-axis to start from 0
+        fig.update_layout(yaxis=dict(range=[0, filtered_df['altitude'].max() * 1.1])) # Adjust multiplier as needed
 
         st.plotly_chart(fig)
 
