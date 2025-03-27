@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import pydeck as pdk
 import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 # from datetime import datetime
 # import json
 
@@ -253,11 +255,46 @@ elif page == "🔊 pagina 3":
 
     plane_specs = pd.read_csv('plane_specs_zonder_fouten.csv')
 
-    fig1 = px.bar(plane_specs, 'seats', 'range_km', color='type', title='Actieradius per passagierscapaciteit')
+    # Create a subplot with shared y-axis for range_km
+    fig_shared = make_subplots(
+        rows=1, cols=3, shared_yaxes=True, subplot_titles=[
+            "Range vs Seats", 
+            "Range vs Max Takeoff Weight", 
+            "Range vs Empty Weight"
+        ]
+)
 
-    fig2 = px.bar(plane_specs, 'max_takeoff_weight_t', 'range_km', color='type', title='Actieradius per startgewicht (\'massa rijklaar\' in autotermen)')
+    # Add first 3 bar charts to the shared figure
+    fig_shared.add_trace(go.Bar(
+        x=plane_specs["seats"], 
+        y=plane_specs["range_km"], 
+        name="Seats", 
+        marker=dict(color="blue")
+    ), row=1, col=1)
 
-    fig3 = px.bar(plane_specs, 'empty_weight_t', 'range_km', color='type', title='Actieradius per leeggewicht (\'massa ledig voertuig\' in autotermen)')
+    fig_shared.add_trace(go.Bar(
+        x=plane_specs["max_takeoff_weight_t"], 
+        y=plane_specs["range_km"], 
+        name="Max Takeoff Weight", 
+        marker=dict(color="red")
+    ), row=1, col=2)
+
+    fig_shared.add_trace(go.Bar(
+        x=plane_specs["empty_weight_t"], 
+        y=plane_specs["range_km"], 
+        name="Empty Weight", 
+        marker=dict(color="green")
+    ), row=1, col=3)
+
+    # Update layout to make it visually clear
+    fig_shared.update_layout(
+        title_text="Shared Y-Axis: Range (km)",
+        showlegend=False, 
+        height=500, width=1000
+    )
+
+    # Display in Streamlit
+    st.plotly_chart(fig_shared)
 
     fig4 = px.bar(plane_specs, 'seats', 'ceiling_m', color='type', title='Dienstplafond per passagierscapaciteit')
 
