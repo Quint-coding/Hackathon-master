@@ -107,12 +107,6 @@ if page == "🔊 Home":
     
     De kaagbaan en polderbaan hebben respectievelijk voorkeur voor aankomende en vertrekkende vluchten, dit omdat deze banen voor minder overlast zorgen. 
     Het wil nog wel eens voorkomen dat er voor andere banen gekozen wordt wegens de veiligheid, het zicht, de wind- en weersomstandigheden, de milieuregels en de beschikbaarheid van de banen.
-
-    Ideen voor meer aanvulling aan de opdracht:
-    Aanpassen van vlieggtuig type.
-    meer data inwinnen over de vliegtuigen en welke het beste is om geluidsoverlast te minderen.
-    Geluidcoefficient aanpasbaar maken
-    Meer context krijgen bij de situatie
              
     Team 8:
     - Tammo van Leeuwen, 
