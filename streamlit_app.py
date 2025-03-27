@@ -306,6 +306,3 @@ elif page == "🔊 Geoplot geluidoverlast":
  
     # Toon de kaart in Streamlit
     st.pydeck_chart(deck)
-
-    # Toon de kaart in Streamlit
-    st.pydeck_chart(deck)
