@@ -173,17 +173,24 @@ elif page == "🔊 Geoplot geluidoverlast":
     # Laad de data en vluchtsoorten met behulp van de gecachte functie
     df_full, vlucht_types, vluchten_all = load_and_process_data()
 
+    # Layer selectie
+    layer_choice = st.radio(
+    "Kies de visualisatielaag:",
+    ["Geluidszones (Cirkels)","Geluidszones (heatmap)"]
+    )
+ 
+ 
     # Streamlit interface - Keuze tussen Aankomst of Vertrek
     selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
-
+ 
     # Filter de dataset op basis van vluchtsoort
     df_filtered_by_type = df_full[df_full['FlightType'] == selected_type].copy()
-
+ 
     # Keuze tussen slider en multiselect
     selection_mode = st.radio("Selecteer weergavemodus:", ["Slider (willekeurige subset)", "Multiselect (specifieke vluchten)"])
-
+ 
     df_to_visualize = pd.DataFrame()  # Initialiseer de DataFrame voor visualisatie
-
+ 
     if selection_mode == "Slider (willekeurige subset)":
         num_available_flights = len(df_filtered_by_type['FlightNumber'].unique())
         max_flights_to_show = st.slider(
@@ -199,7 +206,7 @@ elif page == "🔊 Geoplot geluidoverlast":
             df_to_visualize = df_filtered_by_type[df_filtered_by_type['FlightNumber'].isin(selected_flight_subset)].copy()
         else:
             df_to_visualize = df_filtered_by_type.copy()
-
+ 
     elif selection_mode == "Multiselect (specifieke vluchten)":
         vluchten_binnen_type = df_filtered_by_type['FlightNumber'].unique().tolist()
         vluchten_binnen_type.sort()
@@ -209,14 +216,14 @@ elif page == "🔊 Geoplot geluidoverlast":
             df_to_visualize = df_filtered_by_type[df_filtered_by_type['FlightNumber'].isin(selected_flights)].copy()
         else:
             df_to_visualize = df_filtered_by_type.copy()
-
+ 
     st.write(f"Toont data van {len(df_to_visualize['FlightNumber'].unique())} vluchten.")
-
+ 
     # Create Pydeck Layers
     route_layers = []
     for flight_number, flight_df in df_to_visualize.groupby('FlightNumber'):
         route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
-
+ 
         if len(route_coordinates) > 1:
             route_layers.append(
                 pdk.Layer(
@@ -236,10 +243,20 @@ elif page == "🔊 Geoplot geluidoverlast":
                     pickable=True,
                 )
             )
-
-    df_to_visualize['Noise_Level_expanded'] = (df_to_visualize['Noise_Level'] * df_to_visualize['Noise_Level']) / 5
-
+ 
+    heatmap_layer = pdk.Layer(
+        "HeatmapLayer",
+        data=df_to_visualize,
+        get_position=["Longitude", "Latitude"],
+        get_weight="Noise_Level",
+        radius=500,
+        intensity=1,
+        opacity=0.6
+    )
+ 
     # Geluidsimpact toevoegen als cirkels rond elke locatie (gebaseerd op df_to_visualize)
+    df_to_visualize['Noise_Level_expanded'] = (df_to_visualize['Noise_Level'] * df_to_visualize['Noise_Level']) / 5
+ 
     radius_layer = pdk.Layer(
         "ScatterplotLayer",
         data=df_to_visualize,
@@ -249,14 +266,19 @@ elif page == "🔊 Geoplot geluidoverlast":
         pickable=True,
         opacity=0.3
     )
-
+ 
+    if layer_choice == "Geluidszones (Cirkels)":
+        selected_layers = route_layers + [radius_layer]
+    elif layer_choice == "Geluidszones (heatmap)":
+        selected_layers = route_layers + [heatmap_layer]
+ 
     # Define initial view
     initial_view_state = pdk.ViewState(
         latitude=52.308056,
         longitude=4.764167,
         zoom=8
     )
-
+ 
     # Fix tooltip formatting
     tooltip = {
         "html": """
@@ -265,7 +287,7 @@ elif page == "🔊 Geoplot geluidoverlast":
             <b>Speed:</b> {Speed_kph} kph<br/>
             <b>Height:</b> {Altitude_meters} m<br/>
             <b>Time:</b> {Time}<br/>
-            <b>Noise level:</b> {Noise_Level} dB
+            <b>Noise level:</b> {Noise_Level}
         """,
         "style": {
             "backgroundColor": "white",
@@ -273,14 +295,17 @@ elif page == "🔊 Geoplot geluidoverlast":
             "z-index": "10000"
         }
     }
-
-    # Create Pydeck Deck
+ 
     deck = pdk.Deck(
-        layers=route_layers + [radius_layer],
+        layers=selected_layers,
         initial_view_state=initial_view_state,
         map_style="mapbox://styles/mapbox/streets-v11",
         tooltip=tooltip
     )
+ 
+ 
+    # Toon de kaart in Streamlit
+    st.pydeck_chart(deck)
 
     # Toon de kaart in Streamlit
     st.pydeck_chart(deck)
