@@ -435,7 +435,6 @@ elif page == "🔊 Conclusies & Discussie":
     st.write("""Geluid heeft een logaritmische verband met afstand. Het model geeft een goede voorspelling tussen de hoogtes 100 - 1000 m.
             Verschillende vliegtuig modellen hebben verschillende coefficienten en de Embraer heeft onze voorkeur.             
             Boeing 777 is een groot vliegtuig die veel geluid maakt.
-             
             Stijgende vliegtuigen zijn sneller minder hoorbaar dan dalende vliegtuigen.
             Schiphol maakt duidelijk gebruik van verschillende aanvlieg en vertrek routes.
             Voor minder overlast kunnen deze routes gewijzigd worden.""")
