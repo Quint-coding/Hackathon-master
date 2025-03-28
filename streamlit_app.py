@@ -106,7 +106,7 @@ if page == "🔊 Home":
     Gebruik de navigatie aan de linkerzijde om naar de visualisaties te gaan.
     
     De kaagbaan en polderbaan hebben respectievelijk voorkeur voor aankomende en vertrekkende vluchten, dit omdat deze banen voor minder overlast zorgen. 
-    Het wil nog wel eens voorkomen dat er voor andere banen gekozen wordt wegens de veiligheid, het zicht, de wind- en weersomstandigheden, de milieuregels en de beschikbaarheid van de banen.
+    Het wil nog wel eens voorkomen dat er wordt gekozen voor andere banen wegens de veiligheid, het zicht, de wind- en weersomstandigheden, de milieuregels en de beschikbaarheid van de banen.
              
     Team 8:
     - Tammo van Leeuwen, 
@@ -198,7 +198,7 @@ elif page == "🔊 Theoretische context":
 
     if not filtered_df.empty:
         fig = px.scatter(filtered_df, x='max_db_onder', y='altitude', color='type',
-                        labels={'max_db_onder': 'Max dB Onder', 'altitude': 'Altitude (m)'},
+                        labels={'max_db_onder': 'Max Geluidsniveau Onder (dB)', 'altitude': 'Hoogte (meter)'},
                         title='Altitude vs. Max dB Onder by Type with Logarithmic Fits', 
                         opacity= 0.8)
 
@@ -426,6 +426,22 @@ elif page == "🔊 Geoplot geluidoverlast":
     st.pydeck_chart(deck)
 
 
-elif page == "🔊 Conclusies":
+elif page == "🔊 Conclusies & Discussie":
 
-    st.write("De Boeing 777 is een schreeuwer")
+    st.title("Conclusie en Discussie")
+
+    st.subheader("Conclusies")
+
+    st.write("""Geluid heeft een logaritmische verband met afstand. Het model geeft een goede voorspelling tussen de hoogtes 100 - 1000 m.
+            Verschillende vliegtuig modellen hebben verschillende coefficienten en de Embraer heeft onze voorkeur.
+             
+            Boeing 777 is een groot vliegtuig die veel geluid maakt.
+             
+            Stijgende vliegtuigen zijn sneller minder hoorbaar dan dalende vliegtuigen.
+            Schiphol maakt duidelijk gebruik van verschillende aanvlieg en vertrek routes.
+            Voor minder overlast kunnen deze routes gewijzigd worden.""")
+
+    st.subheader("Discussies")
+
+    st.write("Weer meenemen in coefficient bepaling, gemiddelde coeeficient gebruiken voor modellen waar de coefficient niet is berekend, weinig metingen op hogere afstanden"
+    "dataset van de vliegtuig specificaties")
