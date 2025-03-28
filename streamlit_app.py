@@ -42,7 +42,7 @@ page = st.sidebar.radio("Ga naar", ["🔊 Home",
                                     "🔊 Theoretische context", 
                                     "🔊 Analyse vliegtuig modellen",
                                     "🔊 Geoplot geluidoverlast",
-                                    "🔊 Conclusies"
+                                    "🔊 Conclusies & Discussie"
                                     ])
 
 
@@ -443,5 +443,8 @@ elif page == "🔊 Conclusies & Discussie":
 
     st.subheader("Discussies")
 
-    st.write("Weer meenemen in coefficient bepaling, gemiddelde coeeficient gebruiken voor modellen waar de coefficient niet is berekend, weinig metingen op hogere afstanden"
-    "dataset van de vliegtuig specificaties")
+    st.write("""Weer meenemen in coefficient bepaling, gemiddelde coeeficient gebruiken voor modellen waar de coefficient niet is berekend, weinig metingen op hogere afstanden
+                Dataset van de vliegtuig specificaties.
+                Heatmap is werkt niet samen met zoomlevel.
+                Scatterplot kaart geeft niet goed weer dat het geluid zachter wordt naarmate deze verder is van de bron.
+                """)
