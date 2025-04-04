@@ -282,149 +282,184 @@ elif page == "🔊 Analyse vliegtuig modellen":
     st.plotly_chart(fig7)
 
 elif page == "🔊 Geoplot geluidoverlast":
-    st.title("Geoplot geluidoverlast")
-    st.subheader("Schiphol Geo visualisatie van het geluidsoverlast van diverse vluchten")
 
-    st.write("""Hieronder kunt u de keuze maken naar het type vlucht en eventueel verder specificeren naar exacte vluchten.
-             Het Transfer of Control principe zorgt voor de korte vlucht paden van vertrekkende vluchten. De VFR kaarten hiervoor zijn niet beschikbaar.""")
+    tab1, tab2= st.tabs(['2D Geoplot geluidoverlast', "3D Geoplot geluidoverlast"])
 
-    # Laad de data en vluchtsoorten met behulp van de gecachte functie
-    df_full, vlucht_types, vluchten_all = load_and_process_data()
+    with tab1:
+        st.title("Geoplot geluidoverlast")
+        st.subheader("Schiphol Geo visualisatie van het geluidsoverlast van diverse vluchten")
 
-    # Layer selectie
-    layer_choice = st.radio(
-    "Kies de visualisatielaag:",
-    ["Geluidszones (Cirkels)","Geluidszones (heatmap)"]
-    )
- 
- 
-    # Streamlit interface - Keuze tussen Aankomst of Vertrek
-    selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
- 
-    # Filter de dataset op basis van vluchtsoort
-    df_filtered_by_type = df_full[df_full['FlightType'] == selected_type].copy()
- 
-    # Keuze tussen slider en multiselect
-    selection_mode = st.radio("Selecteer weergavemodus:", ["Slider (willekeurige subset)", "Multiselect (specifieke vluchten)"])
- 
-    df_to_visualize = pd.DataFrame()  # Initialiseer de DataFrame voor visualisatie
- 
-    if selection_mode == "Slider (willekeurige subset)":
-        num_available_flights = len(df_filtered_by_type['FlightNumber'].unique())
-        max_flights_to_show = st.slider(
-            "Aantal vluchten om te tonen:",
-            min_value=5,
-            max_value=num_available_flights if num_available_flights > 0 else 5,
-            value=min(20, num_available_flights) if num_available_flights > 0 else 20,
-            step=5
+        st.write("""Hieronder kunt u de keuze maken naar het type vlucht en eventueel verder specificeren naar exacte vluchten.
+                Het Transfer of Control principe zorgt voor de korte vlucht paden van vertrekkende vluchten. De VFR kaarten hiervoor zijn niet beschikbaar.""")
+
+        # Laad de data en vluchtsoorten met behulp van de gecachte functie
+        df_full, vlucht_types, vluchten_all = load_and_process_data()
+
+        # Layer selectie
+        layer_choice = st.radio(
+        "Kies de visualisatielaag:",
+        ["Geluidszones (Cirkels)","Geluidszones (heatmap)"]
         )
-        unique_flights_all = df_filtered_by_type['FlightNumber'].unique()
-        if len(unique_flights_all) > max_flights_to_show:
-            selected_flight_subset = np.random.choice(unique_flights_all, size=max_flights_to_show, replace=False)
-            df_to_visualize = df_filtered_by_type[df_filtered_by_type['FlightNumber'].isin(selected_flight_subset)].copy()
-        else:
-            df_to_visualize = df_filtered_by_type.copy()
- 
-    elif selection_mode == "Multiselect (specifieke vluchten)":
-        vluchten_binnen_type = df_filtered_by_type['FlightNumber'].unique().tolist()
-        vluchten_binnen_type.sort()
-        vluchten_met_type = ["Alle vluchten"] + vluchten_binnen_type
-        selected_flights = st.multiselect("Selecteer vlucht(en):", vluchten_met_type, default=["Alle vluchten"])
-        if "Alle vluchten" not in selected_flights:
-            df_to_visualize = df_filtered_by_type[df_filtered_by_type['FlightNumber'].isin(selected_flights)].copy()
-        else:
-            df_to_visualize = df_filtered_by_type.copy()
- 
-    st.write(f"Toont data van {len(df_to_visualize['FlightNumber'].unique())} vluchten.")
- 
-    # Create Pydeck Layers
-    route_layers = []
-    for flight_number, flight_df in df_to_visualize.groupby('FlightNumber'):
-        route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
- 
-        if len(route_coordinates) > 1:
-            route_layers.append(
-                pdk.Layer(
-                    "PathLayer",
-                    data=[{
-                        "path": route_coordinates,
-                        "FlightNumber": flight_number,
-                        "Course": flight_df['Course'].iloc[0],
-                        "Speed_kph": flight_df['Speed_kph'].iloc[0],
-                        "Altitude_meters": flight_df['Altitude_meters'].iloc[0],
-                        "Time": flight_df['Time'].iloc[0]
-                    }],
-                    get_path="path",
-                    get_width=4,
-                    get_color=[100, 100, 255],
-                    width_min_pixels=2,
-                    pickable=True,
-                )
-            )
- 
-    heatmap_layer = pdk.Layer(
-        "HeatmapLayer",
-        data=df_to_visualize,
-        get_position=["Longitude", "Latitude"],
-        get_weight="Noise_Level",
-        radius=500,
-        intensity=1,
-        opacity=0.6
-    )
- 
-    # Geluidsimpact toevoegen als cirkels rond elke locatie (gebaseerd op df_to_visualize)
-    df_to_visualize['Noise_Level_expanded'] = (df_to_visualize['Noise_Level'] * df_to_visualize['Noise_Level']) / 5
- 
-    radius_layer = pdk.Layer(
-        "ScatterplotLayer",
-        data=df_to_visualize,
-        get_position=["Longitude", "Latitude"],
-        get_radius='Noise_Level_expanded',
-        get_fill_color="color",
-        pickable=True,
-        opacity=0.3
-    )
- 
-    if layer_choice == "Geluidszones (Cirkels)":
-        selected_layers = route_layers + [radius_layer]
-    elif layer_choice == "Geluidszones (heatmap)":
-        selected_layers = route_layers + [heatmap_layer]
- 
-    # Define initial view
-    initial_view_state = pdk.ViewState(
-        latitude=52.308056,
-        longitude=4.764167,
-        zoom=8
-    )
- 
-    # Fix tooltip formatting
-    tooltip = {
-        "html": """
-            <b>Flight ID:</b> {FlightNumber}<br/>
-            <b>Course:</b> {Course}<br/>
-            <b>Speed:</b> {Speed_kph} kph<br/>
-            <b>Height:</b> {Altitude_meters} m<br/>
-            <b>Time:</b> {Time}<br/>
-            <b>Noise level:</b> {Noise_Level}
-        """,
-        "style": {
-            "backgroundColor": "white",
-            "color": "black",
-            "z-index": "10000"
-        }
-    }
- 
-    deck = pdk.Deck(
-        layers=selected_layers,
-        initial_view_state=initial_view_state,
-        map_style="mapbox://styles/mapbox/streets-v11",
-        tooltip=tooltip
-    )
- 
- 
-    # Toon de kaart in Streamlit
-    st.pydeck_chart(deck)
 
+
+        # Streamlit interface - Keuze tussen Aankomst of Vertrek
+        selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
+
+        # Filter de dataset op basis van vluchtsoort
+        df_filtered_by_type = df_full[df_full['FlightType'] == selected_type].copy()
+
+        # Keuze tussen slider e         n multiselect
+        selection_mode = st.radio("Selecteer weergavemodus:", ["Slider (willekeurige subset)", "Multiselect (specifieke vluchten)"])
+
+        df_to_visualize = pd.DataFrame()  # Initialiseer de DataFrame voor visualisatie
+
+        if selection_mode == "Slider (willekeurige subset)":
+            num_available_flights = len(df_filtered_by_type['FlightNumber'].unique())
+            max_flights_to_show = st.slider(
+                "Aantal vluchten om te tonen:",
+                min_value=5,
+                max_value=num_available_flights if num_available_flights > 0 else 5,
+                value=min(20, num_available_flights) if num_available_flights > 0 else 20,
+                step=5
+            )
+            unique_flights_all = df_filtered_by_type['FlightNumber'].unique()
+            if len(unique_flights_all) > max_flights_to_show:
+                selected_flight_subset = np.random.choice(unique_flights_all, size=max_flights_to_show, replace=False)
+                df_to_visualize = df_filtered_by_type[df_filtered_by_type['FlightNumber'].isin(selected_flight_subset)].copy()
+            else:
+                df_to_visualize = df_filtered_by_type.copy()
+
+        elif selection_mode == "Multiselect (specifieke vluchten)":
+            vluchten_binnen_type = df_filtered_by_type['FlightNumber'].unique().tolist()
+            vluchten_binnen_type.sort()
+            vluchten_met_type = ["Alle vluchten"] + vluchten_binnen_type
+            selected_flights = st.multiselect("Selecteer vlucht(en):", vluchten_met_type, default=["Alle vluchten"])
+            if "Alle vluchten" not in selected_flights:
+                df_to_visualize = df_filtered_by_type[df_filtered_by_type['FlightNumber'].isin(selected_flights)].copy()
+            else:
+                df_to_visualize = df_filtered_by_type.copy()
+
+        st.write(f"Toont data van {len(df_to_visualize['FlightNumber'].unique())} vluchten.")
+
+        # Create Pydeck Layers
+        route_layers = []
+        for flight_number, flight_df in df_to_visualize.groupby('FlightNumber'):
+            route_coordinates = flight_df[['Longitude', 'Latitude']].values.tolist()
+
+            if len(route_coordinates) > 1:
+                route_layers.append(
+                    pdk.Layer(
+                        "PathLayer",
+                        data=[{
+                            "path": route_coordinates,
+                            "FlightNumber": flight_number,
+                            "Course": flight_df['Course'].iloc[0],
+                            "Speed_kph": flight_df['Speed_kph'].iloc[0],
+                            "Altitude_meters": flight_df['Altitude_meters'].iloc[0],
+                            "Time": flight_df['Time'].iloc[0]
+                        }],
+                        get_path="path",
+                        get_width=4,
+                        get_color=[100, 100, 255],
+                        width_min_pixels=2,
+                        pickable=True,
+                    )
+                )
+
+        heatmap_layer = pdk.Layer(
+            "HeatmapLayer",
+            data=df_to_visualize,
+            get_position=["Longitude", "Latitude"],
+            get_weight="Noise_Level",
+            radius=500,
+            intensity=1,
+            opacity=0.6
+        )
+
+        # Geluidsimpact toevoegen als cirkels rond elke locatie (gebaseerd op df_to_visualize)
+        df_to_visualize['Noise_Level_expanded'] = (df_to_visualize['Noise_Level'] * df_to_visualize['Noise_Level']) / 5
+
+        radius_layer = pdk.Layer(
+            "ScatterplotLayer",
+            data=df_to_visualize,
+            get_position=["Longitude", "Latitude"],
+            get_radius='Noise_Level_expanded',
+            get_fill_color="color",
+            pickable=True,
+            opacity=0.3
+        )
+
+        if layer_choice == "Geluidszones (Cirkels)":
+            selected_layers = route_layers + [radius_layer]
+        elif layer_choice == "Geluidszones (heatmap)":
+            selected_layers = route_layers + [heatmap_layer]
+
+        # Define initial view
+        initial_view_state = pdk.ViewState(
+            latitude=52.308056,
+            longitude=4.764167,
+            zoom=8
+        )
+
+        # Fix tooltip formatting
+        tooltip = {
+            "html": """
+                <b>Flight ID:</b> {FlightNumber}<br/>
+                <b>Course:</b> {Course}<br/>
+                <b>Speed:</b> {Speed_kph} kph<br/>
+                <b>Height:</b> {Altitude_meters} m<br/>
+                <b>Time:</b> {Time}<br/>
+                <b>Noise level:</b> {Noise_Level}
+            """,
+            "style": {
+                "backgroundColor": "white",
+                "color": "black",
+                "z-index": "10000"
+            }
+        }
+
+        deck = pdk.Deck(
+            layers=selected_layers,
+            initial_view_state=initial_view_state,
+            map_style="mapbox://styles/mapbox/streets-v11",
+            tooltip=tooltip
+        )
+
+
+        # Toon de kaart in Streamlit
+        st.pydeck_chart(deck)
+
+    with tab2:
+        st.title("Geoplot geluidoverlast (Basic 3D)")
+        st.subheader("Basic 3D Visualization of Flight Paths with Matplotlib")
+        st.write("This is a basic 3D visualization of flight paths using Matplotlib. It is not interactive in the same way as PyDeck.")
+
+        df_full, vlucht_types, vluchten_all = load_and_process_data()
+
+        selected_type = st.radio("Selecteer type vlucht:", vlucht_types)
+        df_filtered_by_type = df_full[df_full['FlightType'] == selected_type].copy()
+
+        selected_flights = st.multiselect("Selecteer vlucht(en):", df_filtered_by_type['FlightNumber'].unique(), default=df_filtered_by_type['FlightNumber'].unique()[:5])
+        df_to_visualize = df_filtered_by_type[df_filtered_by_type['FlightNumber'].isin(selected_flights)].copy()
+
+        st.write(f"Visualizing {len(df_to_visualize['FlightNumber'].unique())} flights.")
+
+        fig = plt.figure(figsize=(10, 8))
+        ax = fig.add_subplot(111, projection='3d')
+
+        for flight_number, flight_df in df_to_visualize.groupby('FlightNumber'):
+            lon = flight_df['Longitude'].values
+            lat = flight_df['Latitude'].values
+            alt = flight_df['Altitude_meters'].values
+            ax.plot(lon, lat, alt, label=flight_number)
+
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
+        ax.set_zlabel('Altitude (meters)')
+        ax.set_title(f'3D Flight Paths ({selected_type})')
+        ax.legend()
+
+        st.pyplot(fig)
 
 elif page == "🔊 Conclusies & Discussie":
 
@@ -432,12 +467,13 @@ elif page == "🔊 Conclusies & Discussie":
 
     st.subheader("Conclusies")
 
-    st.write("""Geluid heeft een logaritmische verband met afstand. Het model geeft een goede voorspelling tussen de hoogtes 100 - 1000 m.
-            Verschillende vliegtuig modellen hebben verschillende coefficienten en de Embraer heeft onze voorkeur.             
-            Boeing 777 is een groot vliegtuig die veel geluid maakt.
-            Stijgende vliegtuigen zijn sneller minder hoorbaar dan dalende vliegtuigen.
-            Schiphol maakt duidelijk gebruik van verschillende aanvlieg en vertrek routes.
-            Voor minder overlast kunnen deze routes gewijzigd worden.""")
+    st.write("""- Geluid heeft een logaritmische verband met afstand. 
+            - Het model geeft een goede voorspelling tussen de hoogtes 100 - 1000 m.
+            - Verschillende vliegtuig modellen hebben verschillende coefficienten en de Embraer heeft onze voorkeur.             
+            - Boeing 777 is een groot vliegtuig die veel geluid maakt.
+            - Stijgende vliegtuigen zijn sneller minder hoorbaar dan dalende vliegtuigen.
+            - Schiphol maakt duidelijk gebruik van verschillende aanvlieg en vertrek routes.
+            - Voor minder overlast kunnen deze routes gewijzigd worden.""")
 
     st.subheader("Discussies")
 
