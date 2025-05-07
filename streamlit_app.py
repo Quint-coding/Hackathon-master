@@ -489,7 +489,7 @@ elif page == "testing":
     # Title
     st.title("✈️ 3D Flight Path Viewer (from Parquet)")
 
-    df = pd.read_parquet('/Users/Quint/Downloads/flights_hackaton_20230701-20230801.parquet')
+    df = pd.read_parquet('flights_hackaton_20230701-20230801.parquet')
 
     df.head()
 
