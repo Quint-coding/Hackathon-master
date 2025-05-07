@@ -42,7 +42,8 @@ page = st.sidebar.radio("Ga naar", ["🔊 Home",
                                     "🔊 Theoretische context", 
                                     "🔊 Analyse vliegtuig modellen",
                                     "🔊 Geoplot geluidoverlast",
-                                    "🔊 Conclusies & Discussie"
+                                    "🔊 Conclusies & Discussie",
+                                    "testing"
                                     ])
 
 
@@ -482,3 +483,53 @@ elif page == "🔊 Conclusies & Discussie":
                 Heatmap is werkt niet samen met zoomlevel.
                 Scatterplot kaart geeft niet goed weer dat het geluid zachter wordt naarmate deze verder is van de bron.
                 """)
+    
+elif page == "testing":
+
+    # Title
+    st.title("✈️ 3D Flight Path Viewer (from Parquet)")
+
+    df = pd.read_csv('flightdata.csv')
+
+    # Ensure required columns exist
+    required_columns = {'lat', 'lon', 'alt', 'flight_id'}
+    if not required_columns.issubset(df.columns):
+        st.error(f"Parquet file must contain columns: {required_columns}")
+        st.stop()
+
+    # Let user select one flight
+    flight_ids = df['flight_id'].unique()
+    selected_flight = st.selectbox("Select a Flight ID to Visualize", flight_ids)
+
+    # Filter only the selected flight
+    flight_data = df[df['flight_id'] == selected_flight]
+
+    # Create the 3D plot
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter3d(
+        x=flight_data['lon'],
+        y=flight_data['lat'],
+        z=flight_data['alt'],
+        mode='lines',
+        line=dict(
+            color=flight_data['alt'],
+            colorscale='Viridis',
+            width=3
+        ),
+        name=str(selected_flight)
+    ))
+
+    fig.update_layout(
+        scene=dict(
+            xaxis_title='Longitude',
+            yaxis_title='Latitude',
+            zaxis_title='Altitude (ft)',
+            aspectratio=dict(x=2, y=1, z=0.5),
+            bgcolor='rgba(240,240,240,0.95)'
+        ),
+        title=f'3D Flight Path: {selected_flight}',
+        margin=dict(l=0, r=0, t=30, b=0)
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
