@@ -489,7 +489,7 @@ elif page == "testing":
     # Title
     st.title("✈️ 3D Flight Path Viewer (from Parquet)")
 
-    df = pd.read_csv('flightdata.csv')
+    df = pd.read_parquet('/Users/Quint/Downloads/flights_hackaton_20230701-20230801.parquet')
 
     # Ensure required columns exist
     required_columns = {'lat', 'lon', 'alt', 'flight_id'}
