@@ -491,7 +491,7 @@ elif page == "testing":
 
     df = pd.read_parquet('flights_hackaton_20230701-20230801.parquet')
 
-    df.head()
+    st.write(df.head())
 
     # Ensure required columns exist
     required_columns = {'lat', 'lon', 'alt', 'flight_id'}
